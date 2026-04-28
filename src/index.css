@@ -128,4 +128,16 @@
   html {
     @apply font-sans;
     }
+  /* This forces the Sidebar to use your Login Page colors */
+  [data-sidebar="sidebar"] {
+    --sidebar: var(--primary);
+    --sidebar-foreground: var(--primary-foreground);
+    --sidebar-primary: var(--primary-foreground);
+    --sidebar-primary-foreground: var(--primary);
+    --sidebar-accent: oklch(1 0 0 / 10%); /* Subtle white highlight */
+    --sidebar-accent-foreground: var(--primary-foreground);
+    --sidebar-border: oklch(1 0 0 / 10%);
+  }
+
 }
+

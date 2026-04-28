@@ -3,78 +3,81 @@ import { navigationConfig } from "@/lib/nav";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { IconLogout, IconActivity } from "@tabler/icons-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { IconLogout, IconActivity, IconChevronRight } from "@tabler/icons-react";
 
-interface AppSidebarProps {
-  userRole: string;
-}
-
-export function AppSidebar({ userRole }: AppSidebarProps) {
+export function AppSidebar({ userRole }: { userRole: string }) {
   const location = useLocation();
-
-  // Filter the array based on user permissions
-  const filteredNav = navigationConfig.filter((item) =>
-    item.roles.includes(userRole)
-  );
+  const filteredNav = navigationConfig.filter((item) => item.roles.includes(userRole));
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border/50">
-      <SidebarHeader className="h-16 flex items-center px-4 border-b border-border/40">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary p-1.5 rounded-lg text-primary-foreground">
-            <IconActivity size={20} stroke={2} />
+    <Sidebar collapsible="icon" className="border-r-0 shadow-xl">
+      <TooltipProvider delayDuration={0}>
+        <SidebarHeader className="h-20 flex items-center justify-center">
+          <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
+            {/* High-contrast logo like login page */}
+            <div className="bg-white text-primary p-2 rounded-xl shadow-inner">
+              <IconActivity size={24} stroke={2.5} />
+            </div>
+            <span className="font-heading font-bold text-xl tracking-tighter text-white group-data-[collapsible=icon]:hidden">
+              PROLOG<span className="opacity-60 font-light text-white">HMS</span>
+            </span>
           </div>
-          <span className="font-heading font-bold text-lg tracking-tight group-data-[collapsible=icon]:hidden">
-            STRAVIAM <span className="text-primary">HMS</span>
-          </span>
-        </div>
-      </SidebarHeader>
+        </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {filteredNav.map((item) => (
+        <SidebarContent className="px-3 py-4">
+          <SidebarMenu className="gap-1.5">
+            {filteredNav.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === item.href}
-                    className="hover:bg-primary/5 active:bg-primary/10 transition-colors"
+                    tooltip={item.title}
+                    className={`
+                      h-12 px-4 rounded-xl transition-all duration-200
+                      ${isActive
+                        ? "bg-white/15 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]"
+                        : "text-white/60 hover:bg-white/10 hover:text-white"}
+                    `}
                   >
                     <Link to={item.href} className="flex items-center gap-3">
-                      <item.icon
-                        size={20}
-                        stroke={1.5}
-                        className={location.pathname === item.href ? "text-primary" : "text-muted-foreground"}
-                      />
-                      <span className="font-medium">{item.title}</span>
+                      <item.icon size={22} stroke={isActive ? 2 : 1.5} />
+                      <span className="font-medium tracking-wide">{item.title}</span>
+                      {isActive && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white group-data-[collapsible=icon]:hidden" />
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-border/40">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="text-destructive hover:bg-destructive/10 hover:text-destructive transition-all">
-              <IconLogout size={20} stroke={1.5} />
-              <span className="font-medium">Sign Out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+        <SidebarFooter className="p-4 border-t border-white/10">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className="h-11 px-4 rounded-xl text-white/50 hover:bg-destructive hover:text-white transition-all"
+              >
+                <IconLogout size={20} stroke={1.5} />
+                <span className="font-bold text-[10px] uppercase tracking-[0.2em] group-data-[collapsible=icon]:hidden">
+                  Terminate Session
+                </span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </TooltipProvider>
     </Sidebar>
   );
 }
+
+// TODO: There are some problem related to the style of sidebar like icon size icon color and menu text color and size

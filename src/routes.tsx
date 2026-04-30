@@ -5,21 +5,19 @@ import AdminDashboard from "./pages/admin-dashboard";
 import NotFound from "./pages/not-found";
 import { ReceptionLayout } from "./layouts/reception-layout";
 import ReceptionDashboard from "./pages/reception-dashboard";
-import { AuthGuard } from "./components/auth/auth-guard";
 import { RoleRedirector } from "./components/auth/role-redirector";
 import Unauthorized from "./pages/unauthorized";
 import AdminBedsPage, { AdminBedLoader } from "./pages/admin/admin-bed-page";
-import { AdminPatientRegistry } from "./pages/admin/admin-patient-registry";
-import AdminDoctorsRegistryPage, { AdminDoctorLoader } from "./pages/admin/admin-doctor-registry";
+import AdminDoctorsPage, { AdminDoctorLoader } from "./pages/admin/admin-doctor-page";
+import AdminPatientsPage, { adminPatientLoader } from "./pages/admin/admin-patient-page";
 
 export const router = createBrowserRouter([
   {
     path: "/login",
-    element: <LoginPage />
+    element: <LoginPage />,
   },
   {
     path: "/",
-    element: <AuthGuard />, // for all children auth must be check
     children: [
       {
         index: true, element: <RoleRedirector /> // if someone access / we need mehanism to redirect user based on type
@@ -36,11 +34,12 @@ export const router = createBrowserRouter([
           },
           {
             path: "patients",
-            element: <AdminPatientRegistry />
+            element: <AdminPatientsPage />,
+            loader: adminPatientLoader
           },
           {
             path: "doctors",
-            element: <AdminDoctorsRegistryPage />,
+            element: <AdminDoctorsPage />,
             loader: AdminDoctorLoader
           }
         ]

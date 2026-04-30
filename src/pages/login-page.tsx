@@ -3,9 +3,81 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { IconBuildingFactory2, IconBuildingHospital, IconShieldCheck } from "@tabler/icons-react";
+import { useAuthStore } from "@/store/auth-store";
+import { useAuth } from "@/hooks/auth";
+import { Navigate, useNavigate } from "react-router";
+import type React from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+// TODO: Think of loader Login Later
+// export function LoginLoader() {
+//   const { user } = useAuthStore(); // why not useAuth as it has react component like useeffect
+//   const role = user.data.role
+//
+//   if (role) {
+//     return redirect(`/${(role).toLowerCase()}`)
+//   }
+//   return null
+//
+// }
 
 export default function LoginPage() {
-  // TODO: Check if the the user is already login of not
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+  const { setLogin } = useAuthStore();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  if (isAuthenticated) {
+    const role = user.data.role;
+    return <Navigate to={`/${role.toLowerCase()}`} />
+  }
+
+  const loginHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    const formData = new FormData(e.currentTarget);
+    // TODO: Use zod here schema vaildation 
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const response = await fetch('http://localhost:4040/api/v1/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // for cookie httpOnly
+        body: JSON.stringify({
+          email: email,
+          password: password
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Invalid credentials");
+      }
+
+      const result = await response.json();
+
+      setLogin(result.data.accessToken);
+
+      navigate('/');
+
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log("Login request failed:" + error.message);
+        toast.error(error.message);
+        setErrorMessage(error.message);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       {/* Left Side: Branding & Info (Hidden on Mobile) */}
@@ -54,12 +126,13 @@ export default function LoginPage() {
           </div>
 
           <Card className="p-6 border-none shadow-none lg:border lg:shadow-sm">
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={loginHandler}>
               <div className="space-y-2">
                 <Label htmlFor="email">Work Email</Label>
                 <Input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder="name@hospital.com"
                   className="bg-muted/30 focus-visible:ring-primary"
                   required
@@ -75,11 +148,15 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
+                  name="password"
                   className="bg-muted/30 focus-visible:ring-primary"
                   required
                 />
               </div>
-              <Button type="submit" className="w-full font-semibold shadow-md">
+              <Button type="submit"
+                className="w-full font-semibold shadow-md"
+                disabled={isLoading}
+              >
                 Sign In to Portal
               </Button>
             </form>

@@ -74,7 +74,7 @@ export async function AdminDoctorLoader(): Promise<LoaderData> {
   };
 }
 
-export default function AdminDoctorsRegistryPage() {
+export default function AdminDoctorsPage() {
   const { doctors, stats } = useLoaderData() as LoaderData;
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [isAddOpen, setIsAddOpen] = useState(false);

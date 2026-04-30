@@ -220,7 +220,7 @@ export default function AdminBedsPage() {
 
       <ConfigureRoomSheet
         room={selectedConfRoom}
-        open={!!selectedConfRoom} // remember one ! is for conveting to ts and other is for inverting
+        open={!!selectedConfRoom} // remember one ! is inveting the truthy or falsy value and other is for inverting again to balance this
         onOpenChange={(open) => !open && setSelectedConfRoom(null)}
       />
 

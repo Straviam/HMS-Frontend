@@ -1,13 +1,18 @@
+import { useAuth } from "@/hooks/auth";
 import { Navigate } from "react-router";
 
 export function RoleRedirector() {
-  // const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const user = { role: "ADMIN" }
-  if (user.role === "ADMIN") {
+  const { user, isAuthenticated } = useAuth();
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.data.role === "ADMIN") {
     return <Navigate to="/admin" replace />;
   }
 
-  if (user.role === "RECEPTIONIST") {
+  if (user.data.role === "RECEPTIONIST") {
     return <Navigate to="/reception" replace />;
   }
 

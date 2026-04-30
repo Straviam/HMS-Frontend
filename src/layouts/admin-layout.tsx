@@ -1,10 +1,21 @@
 import { AppSidebar } from "@/components/side-bar/app-sidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/auth";
+import Unauthorized from "@/pages/unauthorized";
 import { Outlet } from "react-router";
 
 export default function AdminLayout() {
-  // TODO: first check is the user is allowed to access this or not 
-  const user = { role: "ADMIN" }; // Get this from your actual Auth logic
+  const { isAuthenticated, user: loggedUser } = useAuth();
+
+  // just null work cuz useAuth handle navigation internal
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const user = loggedUser.data;
+  if (user.role != "ADMIN") {
+    return <Unauthorized />
+  }
 
   return (
     <SidebarProvider>

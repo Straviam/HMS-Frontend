@@ -1,47 +1,120 @@
 import {
   IconLayoutDashboard,
   IconUsers,
-  IconCalendarEvent,
+  IconUserPlus,
+  IconStethoscope,
+  IconBed,
+  IconClipboardList,
+  IconReceipt2,
+  IconReportMoney,
   IconSettings,
-  IconBottle,
-  IconReportMedical
+  IconActivityHeartbeat,
+  IconBuildingHospital,
+  IconUsersGroup
 } from "@tabler/icons-react";
 
+
 export const navigationConfig = [
+  // -----------------------------------------
+  // 1. DASHBOARDS (Everyone gets one, but the layout will differ)
+  // -----------------------------------------
   {
     title: "Dashboard",
-    href: "/dashboard",
+    href: "/admin",
     icon: IconLayoutDashboard,
-    roles: ["admin", "receptionist", "doctor"],
+    roles: ["ADMIN", "DOCTOR", "RECEPTIONIST", "OPD_OPERATOR", "MANAGMENT", "ACCOUNTANT"],
   },
+
+  // -----------------------------------------
+  // 2. FRONT DESK / RECEPTIONIST OPS
+  // Matches: patients, roomBooking, doctorTimings
+  // -----------------------------------------
   {
-    title: "Registration",
-    href: "/reception/register",
+    title: "Patient Registry",
+    href: "/admin/patients",
     icon: IconUsers,
-    roles: ["admin", "receptionist"],
+    roles: ["ADMIN", "RECEPTIONIST", "MANAGMENT"],
   },
   {
-    title: "Appointments",
-    href: "/reception/appointments",
-    icon: IconCalendarEvent,
-    roles: ["admin", "receptionist", "doctor"],
+    title: "Admissions & Beds",
+    href: "/admin/rooms", // Manages roomStatusEnum ("AVAILABLE", "OCCUPIED")
+    icon: IconBed,
+    roles: ["ADMIN", "RECEPTIONIST", "MANAGMENT"],
+  },
+  // {
+  //   title: "Point of Sale", // Where they create transactions for Services/Doctors
+  //   href: "/pos",
+  //   icon: IconReceipt2,
+  //   roles: ["ADMIN", "RECEPTIONIST"],
+  // },
+
+  // -----------------------------------------
+  // 3. DOCTOR OPS
+  // Matches: doctors, doctorTimings, patients
+  // -----------------------------------------
+  {
+    title: "My Consultations",
+    href: "/consultations", // Queue based on doctor_transactions & max_tokens
+    icon: IconStethoscope,
+    roles: ["DOCTOR"],
   },
   {
-    title: "Inventory",
-    href: "/admin/inventory",
-    icon: IconBottle,
-    roles: ["admin"],
+    title: "Doctors Registry",
+    href: "/admin/doctors",
+    icon: IconStethoscope,
+    roles: ["ADMIN"],
+  }, ,
+
+  // -----------------------------------------
+  // 4. OPD / LAB OPS
+  // Matches: serviceTypes (where isQueuingEnabled = true)
+  // -----------------------------------------
+  // {
+  //   title: "Service Queue",
+  //   href: "/opd/queue", // For Lab Techs / X-Ray operators to clear the queue
+  //   icon: IconActivityHeartbeat,
+  //   roles: ["ADMIN", "OPD_OPERATOR", "MANAGMENT"],
+  // },
+
+  // -----------------------------------------
+  // 5. FINANCE & ACCOUNTING
+  // Matches: invoices, payments, transactions
+  // -----------------------------------------
+  // {
+  //   title: "Billing & Invoices",
+  //   href: "/finance/invoices",
+  //   icon: IconClipboardList,
+  //   roles: ["ADMIN", "ACCOUNTANT", "MANAGMENT"],
+  // },
+  {
+    title: "Revenue & Payments",
+    href: "/finance/payments",
+    icon: IconReportMoney,
+    roles: ["ADMIN", "ACCOUNTANT", "MANAGMENT"],
+  },
+
+  // -----------------------------------------
+  // 6. SYSTEM ADMINISTRATION
+  // Matches: users, service_types, services, rooms
+  // -----------------------------------------
+  {
+    title: "Staff Management",
+    href: "/admin/staff", // Manages users table
+    icon: IconUsersGroup,
+    roles: ["ADMIN"],
   },
   {
-    title: "Reports",
-    href: "/admin/reports",
-    icon: IconReportMedical,
-    roles: ["admin"],
+    title: "Facility Setup",
+    href: "/admin/facility", // Manages rooms and doctors master lists
+    icon: IconBuildingHospital,
+    roles: ["ADMIN"],
   },
   {
-    title: "Settings",
-    href: "/settings",
+    title: "System Configuration",
+    href: "/admin/settings", // Manages service_types, prices, system defaults
     icon: IconSettings,
-    roles: ["admin", "receptionist", "doctor"],
+    roles: ["ADMIN"],
   },
 ];
+
+// TODO: Set all seprate object for seperate role as url  or href is different 

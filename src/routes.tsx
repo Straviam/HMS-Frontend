@@ -8,6 +8,9 @@ import ReceptionDashboard from "./pages/reception-dashboard";
 import { AuthGuard } from "./components/auth/auth-guard";
 import { RoleRedirector } from "./components/auth/role-redirector";
 import Unauthorized from "./pages/unauthorized";
+import AdminBedsPage, { AdminBedLoader } from "./pages/admin/admin-bed-page";
+import { AdminPatientRegistry } from "./pages/admin/admin-patient-registry";
+import AdminDoctorsRegistryPage, { AdminDoctorLoader } from "./pages/admin/admin-doctor-registry";
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +29,20 @@ export const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { index: true, element: <AdminDashboard /> },
+          {
+            path: "rooms",
+            element: <AdminBedsPage />,
+            loader: AdminBedLoader,
+          },
+          {
+            path: "patients",
+            element: <AdminPatientRegistry />
+          },
+          {
+            path: "doctors",
+            element: <AdminDoctorsRegistryPage />,
+            loader: AdminDoctorLoader
+          }
         ]
       },
       {
@@ -48,3 +65,5 @@ export const router = createBrowserRouter([
     element: <Unauthorized />
   }
 ]);
+
+// TODO: Refactor import and export

@@ -26,7 +26,7 @@ export function AppSidebar({ userRole }: { userRole: string }) {
               <IconActivity size={24} stroke={2.5} />
             </div>
             <span className="font-heading font-bold text-xl tracking-tighter text-white group-data-[collapsible=icon]:hidden">
-              PROLOG<span className="opacity-60 font-light text-white">HMS</span>
+              STRAVIAM<span className="opacity-60 font-light text-white">HMS</span>
             </span>
           </div>
         </SidebarHeader>

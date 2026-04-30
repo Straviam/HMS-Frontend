@@ -4,7 +4,7 @@ import { Outlet } from "react-router";
 
 export default function AdminLayout() {
   // TODO: first check is the user is allowed to access this or not 
-  const user = { role: "admin" }; // Get this from your actual Auth logic
+  const user = { role: "ADMIN" }; // Get this from your actual Auth logic
 
   return (
     <SidebarProvider>

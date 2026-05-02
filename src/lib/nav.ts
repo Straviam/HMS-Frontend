@@ -80,16 +80,18 @@ export const navigationConfig = [
   // 5. FINANCE & ACCOUNTING
   // Matches: invoices, payments, transactions
   // -----------------------------------------
-  // {
-  //   title: "Billing & Invoices",
-  //   href: "/finance/invoices",
-  //   icon: IconClipboardList,
-  //   roles: ["ADMIN", "ACCOUNTANT", "MANAGMENT"],
-  // },
   {
-    title: "Revenue & Payments",
-    href: "/finance/payments",
+    title: "Transaction History",
+    href: "/admin/transactions",
     icon: IconReportMoney,
+    roles: ["ADMIN", "ACCOUNTANT", "MANAGMENT"],
+  },
+
+
+  {
+    title: "Billing & Invoices",
+    href: "/admin/invoices",
+    icon: IconClipboardList,
     roles: ["ADMIN", "ACCOUNTANT", "MANAGMENT"],
   },
 
@@ -97,15 +99,15 @@ export const navigationConfig = [
   // 6. SYSTEM ADMINISTRATION
   // Matches: users, service_types, services, rooms
   // -----------------------------------------
-  {
-    title: "Staff Management",
-    href: "/admin/staff", // Manages users table
-    icon: IconUsersGroup,
-    roles: ["ADMIN"],
-  },
+  // {
+  //   title: "Staff Management",
+  //   href: "/admin/staff", // Manages users table
+  //   icon: IconUsersGroup,
+  //   roles: ["ADMIN"],
+  // },
   {
     title: "Facility Setup",
-    href: "/admin/facility", // Manages rooms and doctors master lists
+    href: "/admin/facility", // manage and create services
     icon: IconBuildingHospital,
     roles: ["ADMIN"],
   },

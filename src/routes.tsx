@@ -10,6 +10,8 @@ import Unauthorized from "./pages/unauthorized";
 import AdminBedsPage, { AdminBedLoader } from "./pages/admin/admin-bed-page";
 import AdminDoctorsPage, { AdminDoctorLoader } from "./pages/admin/admin-doctor-page";
 import AdminPatientsPage, { adminPatientLoader } from "./pages/admin/admin-patient-page";
+import AdminTransactionsPage, { adminTransactionLoader } from "./pages/admin/admin-transaction-page";
+import AdminInvoicesPage, { adminInvoiceLoader } from "./pages/admin/admin-billing-page";
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +44,16 @@ export const router = createBrowserRouter([
             path: "doctors",
             element: <AdminDoctorsPage />,
             loader: AdminDoctorLoader
+          },
+          {
+            path: "transactions",
+            element: <AdminTransactionsPage />,
+            loader: adminTransactionLoader
+          },
+          {
+            path: "invoices",
+            element: <AdminInvoicesPage />,
+            loader: adminInvoiceLoader
           }
         ]
       },

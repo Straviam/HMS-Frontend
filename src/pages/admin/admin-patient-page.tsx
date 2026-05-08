@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLoaderData } from "react-router";
+import { useEffect, useState } from "react";
+import { useLoaderData, useNavigation, useSearchParams, type LoaderFunctionArgs } from "react-router";
 import {
   IconUsers,
   IconTrendingUp,
@@ -34,7 +34,7 @@ interface LoaderData {
   stats: {
     totalPatients: number;
     newThisWeek: number;
-    demographics: { male: number; female: number; other: number };
+    demographics: { male: number; female: number; other: number, total: number };
   };
   pagination: {
     page: number;
@@ -43,28 +43,42 @@ interface LoaderData {
   };
 }
 
-// Data Loader (Simulating a paginated database query)
-export async function adminPatientLoader(): Promise<LoaderData> {
-  const mockedPatients: Patient[] = [
-    { id: "1", mrNumber: "MR-2026-0001", firstName: "Ali", lastName: "Ahmed", cnic: "42101-1234567-1", gender: "MALE", phone: "0300-1234567", createdAt: "2026-01-15T08:00:00Z" },
-    { id: "2", mrNumber: "MR-2026-0002", firstName: "Sana", lastName: "Khan", cnic: "42101-7654321-2", gender: "FEMALE", phone: "0333-9876543", createdAt: "2026-02-20T10:00:00Z" },
-    { id: "3", mrNumber: "MR-2026-0003", firstName: "Usman", lastName: "Tariq", cnic: null, gender: "MALE", phone: "0345-1122334", createdAt: "2026-04-28T09:30:00Z" },
-    { id: "4", mrNumber: "MR-2026-0004", firstName: "Fatima", lastName: "Zahra", cnic: "42201-5556667-8", gender: "FEMALE", phone: "0311-9988776", createdAt: "2026-04-29T14:15:00Z" },
-    { id: "5", mrNumber: "MR-2026-0005", firstName: "Zain", lastName: "Malik", cnic: "42101-9998887-3", gender: "MALE", phone: "0300-5554443", createdAt: "2026-04-30T11:00:00Z" },
-  ];
-
-  return {
-    patients: mockedPatients,
-    stats: { totalPatients: 1542, newThisWeek: 38, demographics: { male: 55, female: 44, other: 1 } },
-    pagination: { page: 1, totalPages: 12, totalCount: 1542 }
-  };
-}
-
 // Main Component
 export default function AdminPatientsPage() {
   const { patients, stats, pagination } = useLoaderData() as LoaderData;
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigation = useNavigation();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
+
+
+  // making a debouncing searching you know why? look A1 solution app 
+  useEffect(
+    () => {
+      const timeoutId = setTimeout(() => {
+        setSearchParams((prev) => {
+          if (searchTerm) {
+            prev.set("q", searchTerm)
+          } else {
+            prev.delete("q");
+          }
+          prev.set("page", "1"); // reset to page one when search
+
+          return prev;
+
+        }, { replace: true }) // replace: true prevents flooding the browser history
+      }, 500)
+
+      return () => clearTimeout(timeoutId);
+    }, [searchParams, searchTerm])
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev); // why new instance cuz of the same refernce of url mutating it does not tell react that rerender as the state chnaged
+      newParams.set("page", newPage.toString());
+      return newParams;
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -112,11 +126,12 @@ export default function AdminPatientsPage() {
             </div>
             <div className="flex items-center gap-4 mt-2">
               <div className="w-full bg-muted rounded-full h-2.5 flex overflow-hidden">
-                <div className="bg-blue-500/80 h-2.5" style={{ width: `${stats.demographics.male}%` }}></div>
-                <div className="bg-pink-500/80 h-2.5" style={{ width: `${stats.demographics.female}%` }}></div>
+                <div className="bg-blue-500/80 h-2.5" style={{ width: `${Math.round((stats.demographics.male / stats.demographics.total) * 100)}%` }}></div>
+                <div className="bg-pink-500/80 h-2.5" style={{ width: `${Math.round((stats.demographics.female / stats.demographics.total) * 100)}%` }}></div>
               </div>
               <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
-                {stats.demographics.male}% / {stats.demographics.female}%
+                {Math.round((stats.demographics.male / stats.demographics.total) * 100)}% / {Math.round((stats.demographics.female / stats.demographics.total) * 100)}%
+
               </span>
             </div>
           </CardContent>
@@ -189,13 +204,23 @@ export default function AdminPatientsPage() {
             Showing <strong className="text-foreground">{(pagination.page - 1) * 50 + 1}</strong> to <strong className="text-foreground">{Math.min(pagination.page * 50, pagination.totalCount)}</strong> of <strong className="text-foreground">{pagination.totalCount}</strong>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled={pagination.page === 1} className="h-8 w-8 p-0">
+            <Button variant="outline"
+              size="sm"
+              disabled={pagination.page === 1}
+              className="h-8 w-8 p-0"
+              onClick={() => handlePageChange(pagination.page - 1)}>
               <IconChevronLeft size={16} />
             </Button>
+
             <div className="font-medium px-2">Page {pagination.page} of {pagination.totalPages}</div>
-            <Button variant="outline" size="sm" disabled={pagination.page === pagination.totalPages} className="h-8 w-8 p-0">
-              <IconChevronRight size={16} />
+            <Button variant="outline"
+              size="sm"
+              disabled={pagination.page === pagination.totalPages}
+              className="h-8 w-8 p-0">
+              <IconChevronRight size={16}
+                onClick={() => handlePageChange(pagination.page + 1)} />
             </Button>
+
           </div>
         </div>
       </Card>
@@ -209,3 +234,54 @@ export default function AdminPatientsPage() {
     </div>
   );
 }
+
+
+export async function adminPatientLoader({ request }: LoaderFunctionArgs): Promise<LoaderData> {
+
+  try {
+    const url = new URL(request.url);
+    const q = url.searchParams.get("q") || "";
+    const page = url.searchParams.get("page") || "1";
+
+    const apiOptions = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // for cookie httpOnly
+    } as const;
+
+    // TODO: currenlty for every search what i am doing is calling for stats which is bad i must have to cache the response of stats for 5 min so that i donot call stats api again and again on every search
+    const [patientsRes, statsRes] = await Promise.all([
+      fetch(`http://localhost:4040/api/v1/patients?search=${q}&page=${page}&limit=5`, apiOptions),
+      fetch("http://localhost:4040/api/v1/patients/stats", apiOptions)
+    ]);
+
+    if (!patientsRes.ok) {
+      const err = await patientsRes.json().catch(() => ({}));
+      throw new Error(err.message || "Failed to fetch patients list.")
+    }
+
+    if (!statsRes.ok) {
+      const err = await statsRes.json().catch(() => ({}));
+      throw new Error(err.message || "Failed to fetch patients stats.");
+    }
+    const patientsData = await patientsRes.json();
+    const statsData = await statsRes.json();
+
+    return {
+      patients: patientsData.data.patients,
+      stats: statsData.data,
+      pagination: patientsData.data.pagination
+    }
+  } catch (error) {
+    console.error("Loader Exception:", error instanceof Error ? error.message : "Unknown error");
+    throw new Response("Failed to load patients data from server.", {
+      status: 500,
+      statusText: error instanceof Error ? error.message : "Internal Server Error"
+    });
+
+  }
+}
+
+// FIX: Pagination Does not working.

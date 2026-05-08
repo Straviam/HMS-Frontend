@@ -194,6 +194,7 @@ export async function AdminDoctorLoader(): Promise<LoaderData> {
   try {
 
     // TODO: use Axios later
+    // TODO: add this apiOption in utils
     const apiOptions = {
       method: 'GET',
       headers: {
@@ -227,7 +228,7 @@ export async function AdminDoctorLoader(): Promise<LoaderData> {
   }
   catch (error) {
     console.error("Loader Exception:", error instanceof Error ? error.message : "Unknown error");
-    // what is this Response it is native web api we are handeling the error the react router error boundry componenet 
+    // what is this Response it is native web api we are handeling the error in the react router error boundry componenet 
     throw new Response("Failed to load doctor data from server.", {
       status: 500,
       statusText: error instanceof Error ? error.message : "Internal Server Error"

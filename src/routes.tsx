@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import LoginPage from "./pages/login-page";
 import AdminLayout, { AdminErrorBoundary } from "./layouts/admin-layout";
-import AdminDashboard from "./pages/admin-dashboard";
+import AdminDashboard, { adminDashboardLoader } from "./pages/admin-dashboard";
 import NotFound from "./pages/not-found";
 import { ReceptionLayout } from "./layouts/reception-layout";
 import ReceptionDashboard from "./pages/reception-dashboard";
@@ -29,7 +29,10 @@ export const router = createBrowserRouter([
         element: <AdminLayout />,
         errorElement: <AdminErrorBoundary />,
         children: [
-          { index: true, element: <AdminDashboard /> },
+          {
+            index: true, element: <AdminDashboard />,
+            loader: adminDashboardLoader
+          },
           {
             path: "rooms",
             element: <AdminBedsPage />,

@@ -12,6 +12,7 @@ import AdminDoctorsPage, { AdminDoctorLoader } from "./pages/admin/admin-doctor-
 import AdminPatientsPage, { adminPatientLoader } from "./pages/admin/admin-patient-page";
 import AdminTransactionsPage, { adminTransactionLoader } from "./pages/admin/admin-transaction-page";
 import AdminInvoicesPage, { adminInvoiceLoader } from "./pages/admin/admin-billing-page";
+import AdminFacilityPage, { adminFacilityLoader } from "./pages/admin/admin-facility-page";
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +58,11 @@ export const router = createBrowserRouter([
             path: "invoices",
             element: <AdminInvoicesPage />,
             loader: adminInvoiceLoader
+          },
+          {
+            path: "facility",
+            element: <AdminFacilityPage />,
+            loader: adminFacilityLoader
           }
         ]
       },

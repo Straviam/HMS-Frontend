@@ -21,20 +21,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter
-} from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import FacilityConfigSheet from "@/components/facility/facility-add-sheet";
 
-// --- 1. The Icon Dictionary ---
+
 // This safely maps the database string to the actual React Component
-const iconDictionary: Record<string, React.ElementType> = {
+export const iconDictionary: Record<string, React.ElementType> = {
   IconActivity: IconActivity,
   IconStethoscope: IconStethoscope,
   IconBone: IconBone,
@@ -45,7 +43,7 @@ const iconDictionary: Record<string, React.ElementType> = {
 };
 
 // --- Types & Loader Data ---
-interface ServiceType {
+export interface ServiceType {
   id: string;
   name: string;
   isQueuingEnabled: boolean;
@@ -53,7 +51,7 @@ interface ServiceType {
   iconKey: string;
 }
 
-interface Service {
+export interface Service {
   id: string;
   code: string;
   serviceTypeId: string;
@@ -86,7 +84,6 @@ export async function adminFacilityLoader(): Promise<LoaderData> {
   };
 }
 
-// --- Main Component ---
 export default function AdminFacilityPage() {
   const { serviceTypes, services } = useLoaderData() as LoaderData;
   const [activeTab, setActiveTab] = useState<"catalog" | "rules">("catalog");
@@ -295,154 +292,6 @@ export default function AdminFacilityPage() {
         categories={serviceTypes}
       />
     </div>
-  );
-}
-
-// --- The Context-Aware Form Sheet ---
-interface FacilityConfigSheetProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  mode: "SERVICE" | "CATEGORY";
-  categories: ServiceType[];
-}
-
-function FacilityConfigSheet({ open, onOpenChange, mode, categories }: FacilityConfigSheetProps) {
-  // Simple state for demonstration of the category alert box
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-
-  const selectedCategory = categories.find(c => c.id === selectedCategoryId);
-
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-md flex flex-col h-full bg-background border-l border-border/50">
-        <SheetHeader>
-          <SheetTitle className="font-heading text-xl text-foreground">
-            {mode === "SERVICE" ? "Add New Service" : "Create Service Category"}
-          </SheetTitle>
-          <SheetDescription>
-            {mode === "SERVICE"
-              ? "Define a new billable item for the hospital."
-              : "Set operational rules for a new group of services."}
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto mt-6 space-y-6 pr-1">
-
-          {mode === "SERVICE" && (
-            <>
-              {/* Category Dropdown creates Context! */}
-              <div className="space-y-2">
-                <Label>Parent Category</Label>
-                <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Select a category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* The UI Magic Alert Box we discussed */}
-                {selectedCategory && (
-                  <div className="bg-muted/20 border border-border/50 p-3 rounded-md mt-2 flex items-start gap-2 animate-in fade-in zoom-in-95">
-                    <IconActivity size={16} className="text-primary mt-0.5 shrink-0" />
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Services in <strong>{selectedCategory.name}</strong>
-                      {selectedCategory.isQueuingEnabled ? " are routed to the live queue" : " bypass the queuing system"} and
-                      {selectedCategory.doctorInvolvement === "YES" ? " require a doctor assignment upon billing." : " do not require a specific doctor."}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Service Name</Label>
-                <Input placeholder="e.g., Digital X-Ray" className="bg-background" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>System Code</Label>
-                  <Input placeholder="e.g., RAD-005" className="bg-background font-mono" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Base Price (Rs)</Label>
-                  <Input type="number" placeholder="1500" className="bg-background font-mono" />
-                </div>
-              </div>
-            </>
-          )}
-
-          {mode === "CATEGORY" && (
-            <>
-              <div className="space-y-2">
-                <Label>Category Name</Label>
-                <Input placeholder="e.g., Cardiology" className="bg-background" />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Display Icon</Label>
-                <Select defaultValue="IconActivity">
-                  <SelectTrigger className="bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.keys(iconDictionary).map(key => {
-                      const Icon = iconDictionary[key];
-                      return (
-                        <SelectItem key={key} value={key}>
-                          <div className="flex items-center gap-2">
-                            <Icon size={16} className="text-muted-foreground" />
-                            {key.replace("Icon", "")}
-                          </div>
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="bg-muted/10 border border-border/50 rounded-lg p-4 space-y-4 mt-6">
-                <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">Operational Rules</h4>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Enable Live Queuing</Label>
-                    <p className="text-[10px] text-muted-foreground">Add patient to daily waiting list.</p>
-                  </div>
-                  <Switch />
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Require Doctor</Label>
-                    <p className="text-[10px] text-muted-foreground">Mandatory doctor selection at POS.</p>
-                  </div>
-                  <Select defaultValue="NO">
-                    <SelectTrigger className="w-[110px] h-8 text-xs bg-background">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="YES">Yes</SelectItem>
-                      <SelectItem value="NO">No</SelectItem>
-                      <SelectItem value="OPTIONAL">Optional</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </>
-          )}
-
-        </div>
-
-        <SheetFooter className="mt-auto pt-4 border-t border-border/50">
-          <Button className="w-full shadow-sm">
-            Save {mode === "SERVICE" ? "Service" : "Category"}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
   );
 }
 

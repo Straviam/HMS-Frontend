@@ -10,6 +10,8 @@ import {
   IconSettings,
   IconActivityHeartbeat,
   IconBuildingHospital,
+  IconNewSection,
+  IconReservedLine,
   IconUsersGroup
 } from "@tabler/icons-react";
 
@@ -22,7 +24,22 @@ export const navigationConfig = [
     title: "Dashboard",
     href: "/admin",
     icon: IconLayoutDashboard,
-    roles: ["ADMIN", "DOCTOR", "RECEPTIONIST", "OPD_OPERATOR", "MANAGMENT", "ACCOUNTANT"],
+    roles: ["ADMIN", "DOCTOR",  "OPD_OPERATOR", "MANAGMENT", "ACCOUNTANT"],
+  },
+  // -----------------------------------------
+  // RECEPTIONIST
+  // ------------------------------------------
+  {
+    title: "Reception Desk",
+    href: "/receptionist",
+    icon: IconNewSection,
+    roles: ["RECEPTIONIST"],
+  },
+  {
+    title: "Booking Desk",
+    href: "/receptionist/bookings",
+    icon: IconReservedLine,
+    roles: ["RECEPTIONIST"],
   },
 
   // -----------------------------------------
@@ -33,13 +50,13 @@ export const navigationConfig = [
     title: "Patient Registry",
     href: "/admin/patients",
     icon: IconUsers,
-    roles: ["ADMIN", "RECEPTIONIST", "MANAGMENT"],
+    roles: ["ADMIN",  "MANAGMENT"],
   },
   {
     title: "Admissions & Beds",
     href: "/admin/rooms", // Manages roomStatusEnum ("AVAILABLE", "OCCUPIED")
     icon: IconBed,
-    roles: ["ADMIN", "RECEPTIONIST", "MANAGMENT"],
+    roles: ["ADMIN", "MANAGMENT"],
   },
   // {
   //   title: "Point of Sale", // Where they create transactions for Services/Doctors
@@ -117,6 +134,7 @@ export const navigationConfig = [
     icon: IconSettings,
     roles: ["ADMIN"],
   },
+
 ];
 
-// TODO: Set all seprate object for seperate role as url  or href is different 
+// TODO: Set all seprate object for seperate role as url  or href is different

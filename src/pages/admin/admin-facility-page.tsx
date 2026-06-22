@@ -2,18 +2,10 @@ import { useState } from "react";
 import { useLoaderData } from "react-router";
 import {
   IconActivity,
-  IconStethoscope,
-  IconBone,
-  IconDroplet,
-  IconBed,
-  IconPill,
-  IconMicroscope,
-  IconListNumbers,
   IconSearch,
   IconPlus,
   IconSettings,
   IconEdit,
-  IconArchive
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,18 +21,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import FacilityConfigSheet from "@/components/facility/facility-add-sheet";
+import { getApiOptions } from "@/lib/utils";
+import { iconDictionary } from "@/lib/icons";
 
-
-// This safely maps the database string to the actual React Component
-export const iconDictionary: Record<string, React.ElementType> = {
-  IconActivity: IconActivity,
-  IconStethoscope: IconStethoscope,
-  IconBone: IconBone,
-  IconDroplet: IconDroplet,
-  IconBed: IconBed,
-  IconPill: IconPill,
-  IconMicroscope: IconMicroscope,
-};
 
 // --- Types & Loader Data ---
 export interface ServiceType {
@@ -53,7 +36,7 @@ export interface ServiceType {
 
 export interface Service {
   id: string;
-  code: string;
+  systemCode: string;
   serviceTypeId: string;
   serviceName: string;
   basePrice: number;
@@ -66,26 +49,43 @@ interface LoaderData {
 }
 
 export async function adminFacilityLoader(): Promise<LoaderData> {
-  return {
-    serviceTypes: [
-      { id: "st-1", name: "General Consultation", isQueuingEnabled: true, doctorInvolvement: "YES", iconKey: "IconStethoscope" },
-      { id: "st-2", name: "Radiology", isQueuingEnabled: true, doctorInvolvement: "NO", iconKey: "IconBone" },
-      { id: "st-3", name: "Pathology (Labs)", isQueuingEnabled: true, doctorInvolvement: "NO", iconKey: "IconDroplet" },
-      { id: "st-4", name: "Accommodations", isQueuingEnabled: false, doctorInvolvement: "NO", iconKey: "IconBed" },
-    ],
-    services: [
-      { id: "srv-1", code: "CON-001", serviceTypeId: "st-1", serviceName: "Initial Specialist Consult", basePrice: 2000, isActive: true },
-      { id: "srv-2", code: "CON-002", serviceTypeId: "st-1", serviceName: "Follow-up Consult", basePrice: 1500, isActive: true },
-      { id: "srv-3", code: "RAD-001", serviceTypeId: "st-2", serviceName: "Digital Chest X-Ray", basePrice: 1200, isActive: true },
-      { id: "srv-4", code: "RAD-002", serviceTypeId: "st-2", serviceName: "MRI Scan (Without Contrast)", basePrice: 15000, isActive: false },
-      { id: "srv-5", code: "LAB-001", serviceTypeId: "st-3", serviceName: "Complete Blood Count (CBC)", basePrice: 800, isActive: true },
-      { id: "srv-6", code: "BED-001", serviceTypeId: "st-4", serviceName: "Private Room (Per Night)", basePrice: 8000, isActive: true },
-    ]
-  };
+  try {
+
+    const [serviceRes, serviceTypeRes] = await Promise.all([
+      fetch("http://localhost:4040/api/v1/services", getApiOptions),
+      fetch("http://localhost:4040/api/v1/services/types", getApiOptions)
+    ]);
+
+    if (!serviceRes.ok) {
+      const err = await serviceRes.json().catch(() => ({}));
+      throw new Error(err.message || "Failed to fetch doctors list.");
+    }
+
+    if (!serviceTypeRes.ok) {
+      const err = await serviceTypeRes.json().catch(() => ({}));
+      throw new Error(err.message || "Failed to fetch hospital stats.");
+    }
+    const serviceData = await serviceRes.json();
+    const serviceTypeData = await serviceTypeRes.json();
+
+    return {
+      serviceTypes: serviceTypeData.data,
+      services: serviceData.data
+    };
+  }
+  catch (error) {
+    console.error("Loader Exception:", error instanceof Error ? error.message : "Unknown error");
+    // what is this Response it is native web api we are handeling the error in the react router error boundry componenet 
+    throw new Response("Failed to load facilities data from server.", {
+      status: 500,
+      statusText: error instanceof Error ? error.message : "Internal Server Error"
+    });
+  }
 }
 
+
 export default function AdminFacilityPage() {
-  const { serviceTypes, services } = useLoaderData() as LoaderData;
+  const { services, serviceTypes } = useLoaderData() as LoaderData;
   const [activeTab, setActiveTab] = useState<"catalog" | "rules">("catalog");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -160,6 +160,7 @@ export default function AdminFacilityPage() {
           <Card className="shadow-sm border-border/50">
             <div className="p-4 border-b flex items-center justify-between gap-4 bg-muted/10">
               <div className="relative w-full max-w-md">
+                {/* // NOTE : For Now we are doing only frontend search here as it can not be too many */}
                 <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <Input
                   placeholder="Search by name or code..."
@@ -184,12 +185,13 @@ export default function AdminFacilityPage() {
               <TableBody>
                 {services.map((service) => {
                   const category = getCategoryForService(service.serviceTypeId);
-                  const IconComponent = category ? iconDictionary[category.iconKey] : IconActivity;
+                  {/* const IconComponent = category ? iconDictionary[category.iconKey] : IconActivity; */ }
+                  const IconComponent = IconActivity;
 
                   return (
                     <TableRow key={service.id} className={`transition-colors hover:bg-muted/10 ${!service.isActive ? 'opacity-60' : ''}`}>
                       <TableCell className="font-mono text-sm font-medium text-muted-foreground">
-                        {service.code}
+                        {service.systemCode}
                       </TableCell>
 
                       <TableCell>
@@ -295,5 +297,4 @@ export default function AdminFacilityPage() {
   );
 }
 
-// TODO: replace the sheets to there own new files as components
-// BUILT Action sheet as well
+//TODO:  BUILT Action sheet as well

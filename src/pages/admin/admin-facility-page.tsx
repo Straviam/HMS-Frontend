@@ -103,6 +103,14 @@ export default function AdminFacilityPage() {
     return serviceTypes.find(st => st.id === typeId);
   };
 
+  const filteredServices = services.filter((service) => {
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    return (
+      service.serviceName.toLowerCase().includes(lowerCaseQuery) ||
+      service.systemCode.toLowerCase().includes(lowerCaseQuery)
+    )
+  })
+
   return (
     <div className="space-y-6">
 
@@ -183,59 +191,71 @@ export default function AdminFacilityPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {services.map((service) => {
-                  const category = getCategoryForService(service.serviceTypeId);
-                  {/* const IconComponent = category ? iconDictionary[category.iconKey] : IconActivity; */ }
-                  const IconComponent = IconActivity;
-
-                  return (
-                    <TableRow key={service.id} className={`transition-colors hover:bg-muted/10 ${!service.isActive ? 'opacity-60' : ''}`}>
-                      <TableCell className="font-mono text-sm font-medium text-muted-foreground">
-                        {service.systemCode}
-                      </TableCell>
-
-                      <TableCell>
-                        <p className="font-medium text-foreground">{service.serviceName}</p>
-                        {category && (
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                            <IconComponent size={14} /> {category.name}
-                          </div>
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {category?.doctorInvolvement === "YES" && (
-                            <Badge variant="outline" className="text-[9px] uppercase tracking-wider bg-blue-500/10 text-blue-600 border-blue-500/20 px-1.5 py-0">
-                              Doc Req
-                            </Badge>
-                          )}
-                          {category?.isQueuingEnabled && (
-                            <Badge variant="outline" className="text-[9px] uppercase tracking-wider bg-orange-500/10 text-orange-600 border-orange-500/20 px-1.5 py-0">
-                              Queued
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="text-right font-mono font-medium text-foreground">
-                        Rs {service.basePrice.toLocaleString()}
-                      </TableCell>
-
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className={`text-[10px] font-medium tracking-wider ${service.isActive ? 'bg-green-500/10 text-green-600 border-green-500/30' : 'bg-muted text-muted-foreground'}`}>
-                          {service.isActive ? "ACTIVE" : "INACTIVE"}
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-primary">
-                          <IconEdit size={16} />
-                        </Button>
+                {filteredServices.length === 0 ?
+                  (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        No services found matching "{searchQuery}".
                       </TableCell>
                     </TableRow>
-                  );
-                })}
+                  ) :
+                  (
+                    filteredServices.map((service) => {
+                      const category = getCategoryForService(service.serviceTypeId);
+                      {/* const IconComponent = category ? iconDictionary[category.iconKey] : IconActivity; */ }
+                      const IconComponent = IconActivity;
+
+                      return (
+                        <TableRow key={service.id} className={`transition-colors hover:bg-muted/10 ${!service.isActive ? 'opacity-60' : ''}`}>
+                          <TableCell className="font-mono text-sm font-medium text-muted-foreground">
+                            {service.systemCode}
+                          </TableCell>
+
+                          <TableCell>
+                            <p className="font-medium text-foreground">{service.serviceName}</p>
+                            {category && (
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                                <IconComponent size={14} /> {category.name}
+                              </div>
+                            )}
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex gap-2">
+                              {category?.doctorInvolvement === "YES" && (
+                                <Badge variant="outline" className="text-[9px] uppercase tracking-wider bg-blue-500/10 text-blue-600 border-blue-500/20 px-1.5 py-0">
+                                  Doc Req
+                                </Badge>
+                              )}
+                              {category?.isQueuingEnabled && (
+                                <Badge variant="outline" className="text-[9px] uppercase tracking-wider bg-orange-500/10 text-orange-600 border-orange-500/20 px-1.5 py-0">
+                                  Queued
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="text-right font-mono font-medium text-foreground">
+                            Rs {service.basePrice.toLocaleString()}
+                          </TableCell>
+
+                          <TableCell className="text-center">
+                            <Badge variant="outline" className={`text-[10px] font-medium tracking-wider ${service.isActive ? 'bg-green-500/10 text-green-600 border-green-500/30' : 'bg-muted text-muted-foreground'}`}>
+                              {service.isActive ? "ACTIVE" : "INACTIVE"}
+                            </Badge>
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-primary">
+                              <IconEdit size={16} />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+
+                    })
+
+                  )}
               </TableBody>
             </Table>
           </Card>

@@ -20,17 +20,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import FacilityConfigSheet from "@/components/facility/facility-add-sheet";
 import { getApiOptions } from "@/lib/utils";
 import { iconDictionary } from "@/lib/icons";
+import ServiceConfigSheet from "@/components/facility/service-config-sheet";
+import CategoryConfigSheet from "@/components/facility/category-config-sheet";
 
-
-// --- Types & Loader Data ---
 export interface ServiceType {
   id: string;
   name: string;
   isQueuingEnabled: boolean;
-  doctorInvolvement: "YES" | "NO" | "OPTIONAL";
+  doctorInvolvement: "YES" | "NO" | "PARTIAL";
   iconKey: string;
 }
 
@@ -50,7 +49,6 @@ interface LoaderData {
 
 export async function adminFacilityLoader(): Promise<LoaderData> {
   try {
-
     const [serviceRes, serviceTypeRes] = await Promise.all([
       fetch("http://localhost:4040/api/v1/services", getApiOptions),
       fetch("http://localhost:4040/api/v1/services/types", getApiOptions)
@@ -75,7 +73,6 @@ export async function adminFacilityLoader(): Promise<LoaderData> {
   }
   catch (error) {
     console.error("Loader Exception:", error instanceof Error ? error.message : "Unknown error");
-    // what is this Response it is native web api we are handeling the error in the react router error boundry componenet 
     throw new Response("Failed to load facilities data from server.", {
       status: 500,
       statusText: error instanceof Error ? error.message : "Internal Server Error"
@@ -89,16 +86,23 @@ export default function AdminFacilityPage() {
   const [activeTab, setActiveTab] = useState<"catalog" | "rules">("catalog");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Sheet State
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [sheetMode, setSheetMode] = useState<"SERVICE" | "CATEGORY">("SERVICE");
+  const [isServiceSheetOpen, setIsServiceSheetOpen] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
 
-  const openSheet = (mode: "SERVICE" | "CATEGORY") => {
-    setSheetMode(mode);
-    setIsSheetOpen(true);
+  const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<ServiceType | null>(null);
+
+  // Helper functions to open sheets with or without initial data
+  const openService = (service: Service | null = null) => {
+    setEditingService(service);
+    setIsServiceSheetOpen(true);
   };
 
-  // Helper to get Category data for a specific service
+  const openCategory = (category: ServiceType | null = null) => {
+    setEditingCategory(category);
+    setIsCategorySheetOpen(true);
+  };
+
   const getCategoryForService = (typeId: string) => {
     return serviceTypes.find(st => st.id === typeId);
   };
@@ -109,11 +113,10 @@ export default function AdminFacilityPage() {
       service.serviceName.toLowerCase().includes(lowerCaseQuery) ||
       service.systemCode.toLowerCase().includes(lowerCaseQuery)
     )
-  })
+  });
 
   return (
     <div className="space-y-6">
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -122,7 +125,8 @@ export default function AdminFacilityPage() {
         </div>
         <Button
           className="gap-2 shadow-sm"
-          onClick={() => openSheet(activeTab === "catalog" ? "SERVICE" : "CATEGORY")}
+          // Switched to call the specific open function based on the active tab
+          onClick={() => activeTab === "catalog" ? openService() : openCategory()}
         >
           <IconPlus size={18} />
           {activeTab === "catalog" ? "Add New Service" : "Add New Category"}
@@ -168,7 +172,6 @@ export default function AdminFacilityPage() {
           <Card className="shadow-sm border-border/50">
             <div className="p-4 border-b flex items-center justify-between gap-4 bg-muted/10">
               <div className="relative w-full max-w-md">
-                {/* // NOTE : For Now we are doing only frontend search here as it can not be too many */}
                 <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <Input
                   placeholder="Search by name or code..."
@@ -202,8 +205,7 @@ export default function AdminFacilityPage() {
                   (
                     filteredServices.map((service) => {
                       const category = getCategoryForService(service.serviceTypeId);
-                      {/* const IconComponent = category ? iconDictionary[category.iconKey] : IconActivity; */ }
-                      const IconComponent = IconActivity;
+                      const IconComponent = category ? (iconDictionary[category.iconKey] || IconActivity) : IconActivity;
 
                       return (
                         <TableRow key={service.id} className={`transition-colors hover:bg-muted/10 ${!service.isActive ? 'opacity-60' : ''}`}>
@@ -246,15 +248,19 @@ export default function AdminFacilityPage() {
                           </TableCell>
 
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-primary">
+                            {/* WIRED UP: Pass the service to the edit function */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openService(service)}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                            >
                               <IconEdit size={16} />
                             </Button>
                           </TableCell>
                         </TableRow>
                       )
-
                     })
-
                   )}
               </TableBody>
             </Table>
@@ -293,7 +299,13 @@ export default function AdminFacilityPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-primary">
+                        {/* WIRED UP: Pass the type to the edit function */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openCategory(type)}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                        >
                           <IconEdit size={16} />
                         </Button>
                       </TableCell>
@@ -306,15 +318,19 @@ export default function AdminFacilityPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Context-Aware Slide-out Form */}
-      <FacilityConfigSheet
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        mode={sheetMode}
+      {/* Render both sheets separately at the bottom */}
+      <ServiceConfigSheet
+        open={isServiceSheetOpen}
+        onOpenChange={setIsServiceSheetOpen}
         categories={serviceTypes}
+        initialData={editingService}
+      />
+
+      <CategoryConfigSheet
+        open={isCategorySheetOpen}
+        onOpenChange={setIsCategorySheetOpen}
+        initialData={editingCategory}
       />
     </div>
   );
 }
-
-//TODO:  BUILT Action sheet as well

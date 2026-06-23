@@ -24,7 +24,6 @@ export default function CategoryConfigSheet({ open, onOpenChange, initialData }:
   const revalidator = useRevalidator();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Flattened Form States
   const [name, setName] = useState("");
   const [iconKey, setIconKey] = useState("IconActivity");
   const [isQueuingEnabled, setIsQueuingEnabled] = useState(false);

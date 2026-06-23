@@ -2,18 +2,10 @@ import { useState } from "react";
 import { useLoaderData } from "react-router";
 import {
   IconActivity,
-  IconStethoscope,
-  IconBone,
-  IconDroplet,
-  IconBed,
-  IconPill,
-  IconMicroscope,
-  IconListNumbers,
   IconSearch,
   IconPlus,
   IconSettings,
   IconEdit,
-  IconArchive
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,41 +13,29 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter
-} from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { getApiOptions } from "@/lib/utils";
+import { iconDictionary } from "@/lib/icons";
+import ServiceConfigSheet from "@/components/facility/service-config-sheet";
+import CategoryConfigSheet from "@/components/facility/category-config-sheet";
 
-// --- 1. The Icon Dictionary ---
-// This safely maps the database string to the actual React Component
-const iconDictionary: Record<string, React.ElementType> = {
-  IconActivity: IconActivity,
-  IconStethoscope: IconStethoscope,
-  IconBone: IconBone,
-  IconDroplet: IconDroplet,
-  IconBed: IconBed,
-  IconPill: IconPill,
-  IconMicroscope: IconMicroscope,
-};
-
-// --- Types & Loader Data ---
-interface ServiceType {
+export interface ServiceType {
   id: string;
   name: string;
   isQueuingEnabled: boolean;
-  doctorInvolvement: "YES" | "NO" | "OPTIONAL";
+  doctorInvolvement: "YES" | "NO" | "PARTIAL";
   iconKey: string;
 }
 
-interface Service {
+export interface Service {
   id: string;
-  code: string;
+  systemCode: string;
   serviceTypeId: string;
   serviceName: string;
   basePrice: number;
@@ -68,47 +48,75 @@ interface LoaderData {
 }
 
 export async function adminFacilityLoader(): Promise<LoaderData> {
-  return {
-    serviceTypes: [
-      { id: "st-1", name: "General Consultation", isQueuingEnabled: true, doctorInvolvement: "YES", iconKey: "IconStethoscope" },
-      { id: "st-2", name: "Radiology", isQueuingEnabled: true, doctorInvolvement: "NO", iconKey: "IconBone" },
-      { id: "st-3", name: "Pathology (Labs)", isQueuingEnabled: true, doctorInvolvement: "NO", iconKey: "IconDroplet" },
-      { id: "st-4", name: "Accommodations", isQueuingEnabled: false, doctorInvolvement: "NO", iconKey: "IconBed" },
-    ],
-    services: [
-      { id: "srv-1", code: "CON-001", serviceTypeId: "st-1", serviceName: "Initial Specialist Consult", basePrice: 2000, isActive: true },
-      { id: "srv-2", code: "CON-002", serviceTypeId: "st-1", serviceName: "Follow-up Consult", basePrice: 1500, isActive: true },
-      { id: "srv-3", code: "RAD-001", serviceTypeId: "st-2", serviceName: "Digital Chest X-Ray", basePrice: 1200, isActive: true },
-      { id: "srv-4", code: "RAD-002", serviceTypeId: "st-2", serviceName: "MRI Scan (Without Contrast)", basePrice: 15000, isActive: false },
-      { id: "srv-5", code: "LAB-001", serviceTypeId: "st-3", serviceName: "Complete Blood Count (CBC)", basePrice: 800, isActive: true },
-      { id: "srv-6", code: "BED-001", serviceTypeId: "st-4", serviceName: "Private Room (Per Night)", basePrice: 8000, isActive: true },
-    ]
-  };
+  try {
+    const [serviceRes, serviceTypeRes] = await Promise.all([
+      fetch("http://localhost:4040/api/v1/services", getApiOptions),
+      fetch("http://localhost:4040/api/v1/services/types", getApiOptions)
+    ]);
+
+    if (!serviceRes.ok) {
+      const err = await serviceRes.json().catch(() => ({}));
+      throw new Error(err.message || "Failed to fetch doctors list.");
+    }
+
+    if (!serviceTypeRes.ok) {
+      const err = await serviceTypeRes.json().catch(() => ({}));
+      throw new Error(err.message || "Failed to fetch hospital stats.");
+    }
+    const serviceData = await serviceRes.json();
+    const serviceTypeData = await serviceTypeRes.json();
+
+    return {
+      serviceTypes: serviceTypeData.data,
+      services: serviceData.data
+    };
+  }
+  catch (error) {
+    console.error("Loader Exception:", error instanceof Error ? error.message : "Unknown error");
+    throw new Response("Failed to load facilities data from server.", {
+      status: 500,
+      statusText: error instanceof Error ? error.message : "Internal Server Error"
+    });
+  }
 }
 
-// --- Main Component ---
+
 export default function AdminFacilityPage() {
-  const { serviceTypes, services } = useLoaderData() as LoaderData;
+  const { services, serviceTypes } = useLoaderData() as LoaderData;
   const [activeTab, setActiveTab] = useState<"catalog" | "rules">("catalog");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Sheet State
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [sheetMode, setSheetMode] = useState<"SERVICE" | "CATEGORY">("SERVICE");
+  const [isServiceSheetOpen, setIsServiceSheetOpen] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
 
-  const openSheet = (mode: "SERVICE" | "CATEGORY") => {
-    setSheetMode(mode);
-    setIsSheetOpen(true);
+  const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<ServiceType | null>(null);
+
+  // Helper functions to open sheets with or without initial data
+  const openService = (service: Service | null = null) => {
+    setEditingService(service);
+    setIsServiceSheetOpen(true);
   };
 
-  // Helper to get Category data for a specific service
+  const openCategory = (category: ServiceType | null = null) => {
+    setEditingCategory(category);
+    setIsCategorySheetOpen(true);
+  };
+
   const getCategoryForService = (typeId: string) => {
     return serviceTypes.find(st => st.id === typeId);
   };
 
+  const filteredServices = services.filter((service) => {
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    return (
+      service.serviceName.toLowerCase().includes(lowerCaseQuery) ||
+      service.systemCode.toLowerCase().includes(lowerCaseQuery)
+    )
+  });
+
   return (
     <div className="space-y-6">
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -117,7 +125,8 @@ export default function AdminFacilityPage() {
         </div>
         <Button
           className="gap-2 shadow-sm"
-          onClick={() => openSheet(activeTab === "catalog" ? "SERVICE" : "CATEGORY")}
+          // Switched to call the specific open function based on the active tab
+          onClick={() => activeTab === "catalog" ? openService() : openCategory()}
         >
           <IconPlus size={18} />
           {activeTab === "catalog" ? "Add New Service" : "Add New Category"}
@@ -185,58 +194,74 @@ export default function AdminFacilityPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {services.map((service) => {
-                  const category = getCategoryForService(service.serviceTypeId);
-                  const IconComponent = category ? iconDictionary[category.iconKey] : IconActivity;
-
-                  return (
-                    <TableRow key={service.id} className={`transition-colors hover:bg-muted/10 ${!service.isActive ? 'opacity-60' : ''}`}>
-                      <TableCell className="font-mono text-sm font-medium text-muted-foreground">
-                        {service.code}
-                      </TableCell>
-
-                      <TableCell>
-                        <p className="font-medium text-foreground">{service.serviceName}</p>
-                        {category && (
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                            <IconComponent size={14} /> {category.name}
-                          </div>
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {category?.doctorInvolvement === "YES" && (
-                            <Badge variant="outline" className="text-[9px] uppercase tracking-wider bg-blue-500/10 text-blue-600 border-blue-500/20 px-1.5 py-0">
-                              Doc Req
-                            </Badge>
-                          )}
-                          {category?.isQueuingEnabled && (
-                            <Badge variant="outline" className="text-[9px] uppercase tracking-wider bg-orange-500/10 text-orange-600 border-orange-500/20 px-1.5 py-0">
-                              Queued
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="text-right font-mono font-medium text-foreground">
-                        Rs {service.basePrice.toLocaleString()}
-                      </TableCell>
-
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className={`text-[10px] font-medium tracking-wider ${service.isActive ? 'bg-green-500/10 text-green-600 border-green-500/30' : 'bg-muted text-muted-foreground'}`}>
-                          {service.isActive ? "ACTIVE" : "INACTIVE"}
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-primary">
-                          <IconEdit size={16} />
-                        </Button>
+                {filteredServices.length === 0 ?
+                  (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        No services found matching "{searchQuery}".
                       </TableCell>
                     </TableRow>
-                  );
-                })}
+                  ) :
+                  (
+                    filteredServices.map((service) => {
+                      const category = getCategoryForService(service.serviceTypeId);
+                      const IconComponent = category ? (iconDictionary[category.iconKey] || IconActivity) : IconActivity;
+
+                      return (
+                        <TableRow key={service.id} className={`transition-colors hover:bg-muted/10 ${!service.isActive ? 'opacity-60' : ''}`}>
+                          <TableCell className="font-mono text-sm font-medium text-muted-foreground">
+                            {service.systemCode}
+                          </TableCell>
+
+                          <TableCell>
+                            <p className="font-medium text-foreground">{service.serviceName}</p>
+                            {category && (
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                                <IconComponent size={14} /> {category.name}
+                              </div>
+                            )}
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex gap-2">
+                              {category?.doctorInvolvement === "YES" && (
+                                <Badge variant="outline" className="text-[9px] uppercase tracking-wider bg-blue-500/10 text-blue-600 border-blue-500/20 px-1.5 py-0">
+                                  Doc Req
+                                </Badge>
+                              )}
+                              {category?.isQueuingEnabled && (
+                                <Badge variant="outline" className="text-[9px] uppercase tracking-wider bg-orange-500/10 text-orange-600 border-orange-500/20 px-1.5 py-0">
+                                  Queued
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="text-right font-mono font-medium text-foreground">
+                            Rs {service.basePrice.toLocaleString()}
+                          </TableCell>
+
+                          <TableCell className="text-center">
+                            <Badge variant="outline" className={`text-[10px] font-medium tracking-wider ${service.isActive ? 'bg-green-500/10 text-green-600 border-green-500/30' : 'bg-muted text-muted-foreground'}`}>
+                              {service.isActive ? "ACTIVE" : "INACTIVE"}
+                            </Badge>
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            {/* WIRED UP: Pass the service to the edit function */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openService(service)}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                            >
+                              <IconEdit size={16} />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  )}
               </TableBody>
             </Table>
           </Card>
@@ -274,7 +299,13 @@ export default function AdminFacilityPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-primary">
+                        {/* WIRED UP: Pass the type to the edit function */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openCategory(type)}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                        >
                           <IconEdit size={16} />
                         </Button>
                       </TableCell>
@@ -287,164 +318,19 @@ export default function AdminFacilityPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Context-Aware Slide-out Form */}
-      <FacilityConfigSheet
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        mode={sheetMode}
+      {/* Render both sheets separately at the bottom */}
+      <ServiceConfigSheet
+        open={isServiceSheetOpen}
+        onOpenChange={setIsServiceSheetOpen}
         categories={serviceTypes}
+        initialData={editingService}
+      />
+
+      <CategoryConfigSheet
+        open={isCategorySheetOpen}
+        onOpenChange={setIsCategorySheetOpen}
+        initialData={editingCategory}
       />
     </div>
   );
 }
-
-// --- The Context-Aware Form Sheet ---
-interface FacilityConfigSheetProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  mode: "SERVICE" | "CATEGORY";
-  categories: ServiceType[];
-}
-
-function FacilityConfigSheet({ open, onOpenChange, mode, categories }: FacilityConfigSheetProps) {
-  // Simple state for demonstration of the category alert box
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-
-  const selectedCategory = categories.find(c => c.id === selectedCategoryId);
-
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-md flex flex-col h-full bg-background border-l border-border/50">
-        <SheetHeader>
-          <SheetTitle className="font-heading text-xl text-foreground">
-            {mode === "SERVICE" ? "Add New Service" : "Create Service Category"}
-          </SheetTitle>
-          <SheetDescription>
-            {mode === "SERVICE"
-              ? "Define a new billable item for the hospital."
-              : "Set operational rules for a new group of services."}
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto mt-6 space-y-6 pr-1">
-
-          {mode === "SERVICE" && (
-            <>
-              {/* Category Dropdown creates Context! */}
-              <div className="space-y-2">
-                <Label>Parent Category</Label>
-                <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Select a category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* The UI Magic Alert Box we discussed */}
-                {selectedCategory && (
-                  <div className="bg-muted/20 border border-border/50 p-3 rounded-md mt-2 flex items-start gap-2 animate-in fade-in zoom-in-95">
-                    <IconActivity size={16} className="text-primary mt-0.5 shrink-0" />
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Services in <strong>{selectedCategory.name}</strong>
-                      {selectedCategory.isQueuingEnabled ? " are routed to the live queue" : " bypass the queuing system"} and
-                      {selectedCategory.doctorInvolvement === "YES" ? " require a doctor assignment upon billing." : " do not require a specific doctor."}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Service Name</Label>
-                <Input placeholder="e.g., Digital X-Ray" className="bg-background" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>System Code</Label>
-                  <Input placeholder="e.g., RAD-005" className="bg-background font-mono" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Base Price (Rs)</Label>
-                  <Input type="number" placeholder="1500" className="bg-background font-mono" />
-                </div>
-              </div>
-            </>
-          )}
-
-          {mode === "CATEGORY" && (
-            <>
-              <div className="space-y-2">
-                <Label>Category Name</Label>
-                <Input placeholder="e.g., Cardiology" className="bg-background" />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Display Icon</Label>
-                <Select defaultValue="IconActivity">
-                  <SelectTrigger className="bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.keys(iconDictionary).map(key => {
-                      const Icon = iconDictionary[key];
-                      return (
-                        <SelectItem key={key} value={key}>
-                          <div className="flex items-center gap-2">
-                            <Icon size={16} className="text-muted-foreground" />
-                            {key.replace("Icon", "")}
-                          </div>
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="bg-muted/10 border border-border/50 rounded-lg p-4 space-y-4 mt-6">
-                <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">Operational Rules</h4>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Enable Live Queuing</Label>
-                    <p className="text-[10px] text-muted-foreground">Add patient to daily waiting list.</p>
-                  </div>
-                  <Switch />
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Require Doctor</Label>
-                    <p className="text-[10px] text-muted-foreground">Mandatory doctor selection at POS.</p>
-                  </div>
-                  <Select defaultValue="NO">
-                    <SelectTrigger className="w-[110px] h-8 text-xs bg-background">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="YES">Yes</SelectItem>
-                      <SelectItem value="NO">No</SelectItem>
-                      <SelectItem value="OPTIONAL">Optional</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </>
-          )}
-
-        </div>
-
-        <SheetFooter className="mt-auto pt-4 border-t border-border/50">
-          <Button className="w-full shadow-sm">
-            Save {mode === "SERVICE" ? "Service" : "Category"}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-// TODO: replace the sheets to there own new files as components
-// BUILT Action sheet as well

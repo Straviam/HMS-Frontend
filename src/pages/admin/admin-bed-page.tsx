@@ -197,6 +197,7 @@ export default function AdminBedsPage() {
 
             <CardFooter className="pt-0 border-t bg-card/50 px-6 py-3">
               <div className="w-full flex items-center justify-between">
+                {/* NOTE: This will be needed only when in backend we have logs table for room activity. Another thing that we can do there or may in the sheet to show all the detail history or room booking there   */}
                 {/*
                  <Button variant="link" size="sm" className="px-0 text-muted-foreground hover:text-foreground"
                   onClick={() => setSelectedLogRoom(room)}>

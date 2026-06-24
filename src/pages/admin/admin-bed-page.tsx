@@ -23,7 +23,7 @@ interface Room {
   id: string;
   roomNumber: string;
   roomType: string;
-  pricePerHour: number;
+  pricePerDay: number;
   status: RoomStatus;
   lastCleanedAt: string | null;
 }
@@ -41,11 +41,11 @@ interface LoaderData {
 // The Data Loader (Runs on the server/before render)
 export async function AdminBedLoader(): Promise<LoaderData> {
   const mockedRooms: Room[] = [
-    { id: "1", roomNumber: "ICU-01", roomType: "Intensive Care", pricePerHour: 5000, status: "OCCUPIED", lastCleanedAt: "2026-04-28T08:00:00Z" },
-    { id: "2", roomNumber: "ICU-02", roomType: "Intensive Care", pricePerHour: 5000, status: "CLEANING", lastCleanedAt: "2026-04-29T10:00:00Z" },
-    { id: "3", roomNumber: "GEN-101", roomType: "General Ward", pricePerHour: 1500, status: "AVAILABLE", lastCleanedAt: "2026-04-29T06:30:00Z" },
-    { id: "4", roomNumber: "VIP-204", roomType: "Private Suite", pricePerHour: 8000, status: "UNDER_MAINTENANCE", lastCleanedAt: "2026-04-20T00:00:00Z" },
-    { id: "5", roomNumber: "GEN-102", roomType: "General Ward", pricePerHour: 1500, status: "AVAILABLE", lastCleanedAt: "2026-04-29T07:15:00Z" },
+    { id: "1", roomNumber: "ICU-01", roomType: "Intensive Care", pricePerDay: 5000, status: "OCCUPIED", lastCleanedAt: "2026-04-28T08:00:00Z" },
+    { id: "2", roomNumber: "ICU-02", roomType: "Intensive Care", pricePerDay: 5000, status: "CLEANING", lastCleanedAt: "2026-04-29T10:00:00Z" },
+    { id: "3", roomNumber: "GEN-101", roomType: "General Ward", pricePerDay: 1500, status: "AVAILABLE", lastCleanedAt: "2026-04-29T06:30:00Z" },
+    { id: "4", roomNumber: "VIP-204", roomType: "Private Suite", pricePerDay: 8000, status: "UNDER_MAINTENANCE", lastCleanedAt: "2026-04-20T00:00:00Z" },
+    { id: "5", roomNumber: "GEN-102", roomType: "General Ward", pricePerDay: 1500, status: "AVAILABLE", lastCleanedAt: "2026-04-29T07:15:00Z" },
   ];
 
   return {
@@ -182,16 +182,17 @@ export default function AdminBedsPage() {
               <div className="grid grid-cols-2 gap-4 text-sm bg-muted/30 p-3 rounded-lg border border-border/50">
                 <div className="flex flex-col gap-1">
                   <span className="text-muted-foreground text-xs uppercase tracking-wider">Rate</span>
-                  <span className="font-mono font-medium">Rs {room.pricePerHour.toLocaleString()}/hr</span>
+                  <span className="font-mono font-medium">Rs {room.pricePerDay.toLocaleString()}/Day</span>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-muted-foreground text-xs uppercase tracking-wider">Last Cleaned</span>
-                  <span className="font-medium truncate">
-                    {room.lastCleanedAt
-                      ? new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: 'numeric', day: 'numeric', month: 'short' }).format(new Date(room.lastCleanedAt))
-                      : "Unknown"}
-                  </span>
-                </div>
+                {/* No Need of Last Cleaned At  */}
+                {/* <div className="flex flex-col gap-1"> */}
+                {/*   <span className="text-muted-foreground text-xs uppercase tracking-wider">Last Cleaned</span> */}
+                {/*   <span className="font-medium truncate"> */}
+                {/*     {room.lastCleanedAt */}
+                {/*       ? new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: 'numeric', day: 'numeric', month: 'short' }).format(new Date(room.lastCleanedAt)) */}
+                {/*       : "Unknown"} */}
+                {/*   </span> */}
+                {/* </div> */}
               </div>
             </CardContent>
 

@@ -39,13 +39,12 @@ interface LoaderData {
   };
 }
 
-// The Data Loader (Runs on the server/before render)
 export async function AdminBedLoader(): Promise<LoaderData> {
 
   try {
     const [roomRes, statsRes] = await Promise.all([
       fetch("http://localhost:4040/api/v1/rooms", getApiOptions),
-      fetch("http://localhost:4040/api/v1/doctors/stats", getApiOptions)
+      fetch("http://localhost:4040/api/v1/rooms/stats", getApiOptions)
     ]);
 
     if (!roomRes.ok) {
@@ -62,14 +61,7 @@ export async function AdminBedLoader(): Promise<LoaderData> {
 
     return {
       rooms: roomData.data,
-      // stats: statsData.data,
-      stats: {
-        total: 5,
-        occupied: 1,
-        maintenance: 1,
-        cleaning: 1,
-      }
-
+      stats: statsData.data,
     };
   }
   catch (error) {

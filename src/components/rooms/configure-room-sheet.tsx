@@ -20,7 +20,7 @@ export function ConfigureRoomSheet({ room, open, onOpenChange }: any) {
   const [isLoading, setIsLoading] = useState(false);
 
   const [roomStatus, setRoomStatus] = useState(room.status);
-  const [price, setPrice] = useState(room.pricePerDay);
+  const [price, setPrice] = useState(room.price);
 
   const handleUpadte = async () => {
     if (!roomStatus || !price) {
@@ -105,7 +105,7 @@ export function ConfigureRoomSheet({ room, open, onOpenChange }: any) {
                 {/* NOTE: these are based on Enum of DB */}
                 <SelectItem value="AVAILABLE">Available (Force Clear)</SelectItem>
                 <SelectItem value="UNDER_MAINTENANCE">Under Maintenance</SelectItem>
-                <SelectItem value="CLEANING">Needs Cleaning</SelectItem>
+                {/* <SelectItem value="CLEANING">Needs Cleaning</SelectItem> */}
                 <SelectItem value="OCCUPIED" disabled>Occupied (System Managed)</SelectItem>
               </SelectContent>
             </Select>
@@ -117,7 +117,7 @@ export function ConfigureRoomSheet({ room, open, onOpenChange }: any) {
 
           <div className="grid gap-2">
             <Label>Custom Rate (Rs / Day)</Label>
-            <Input type="number" value={price} onChange={(e) => { setPrice((e.target.value)) }} className="bg-muted/30" />
+            <Input type="number" defaultValue={price} onChange={(e) => { setPrice((e.target.value)) }} className="bg-muted/30" />
           </div>
         </div>
 

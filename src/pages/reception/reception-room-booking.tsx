@@ -570,7 +570,7 @@ export default function ReceptionRoomBooking() {
       <Sheet open={isManageSheetOpen} onOpenChange={setIsManageSheetOpen}>
         <SheetContent className="sm:max-w-md">
           <SheetHeader className="mb-6">
-            <SheetTitle className="font-heading text-2xl">
+            <SheetTitle className="font-heading text-2xl flex items-center gap-2">
               Manage Occupancy
             </SheetTitle>
             <SheetDescription>

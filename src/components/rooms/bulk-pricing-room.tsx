@@ -5,8 +5,52 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IconCalculator } from "@tabler/icons-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useRevalidator } from "react-router";
 
 export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
+  const revalidator = useRevalidator();
+  const [isLoading, setIsLoading] = useState(false);
+  const [multiplier, setMultiplier] = useState(1);
+
+  const handelApplyGlobalMultiplier = async () => {
+    if (!multiplier) {
+      toast.error("Please Enter a Multiplier.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+
+      const response = await fetch(`http://localhost:4040/api/v1/rooms/pricing/bulk-multiplier`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: 'include',
+        body: JSON.stringify({
+          multiplier
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Something went wrong");
+      }
+
+      const result = await response.json();
+      revalidator.revalidate();
+      toast.success(result.message || `Pricing Sucessfully`);
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
@@ -21,8 +65,19 @@ export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
 
         <div className="flex items-center gap-4 py-4 border-b">
           <span className="text-sm font-medium">Apply Global Multiplier:</span>
-          <Input type="number" placeholder="e.g., 1.10 for +10%" className="w-40 bg-muted/30" />
-          <Button variant="secondary" size="sm">Apply to All</Button>
+          <Input
+            type="number"
+            placeholder="e.g., 1.10 for +10%"
+            className="w-40 bg-muted/30"
+            value={multiplier}
+            onChange={(e) => { setMultiplier(parseFloat(e.target.value)) }}
+          />
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handelApplyGlobalMultiplier}
+            disabled={isLoading}
+          >Apply to All</Button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-4">
@@ -40,9 +95,9 @@ export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
                 <TableRow key={room.id}>
                   <TableCell className="font-mono font-medium">{room.roomNumber}</TableCell>
                   <TableCell className="text-muted-foreground">{room.roomType}</TableCell>
-                  <TableCell>Rs {room.pricePerHour}</TableCell>
+                  <TableCell>Rs {room.price}</TableCell>
                   <TableCell>
-                    <Input type="number" defaultValue={room.pricePerHour} className="w-32 h-8 text-sm" />
+                    <Input type="number" defaultValue={room.price} className="w-32 h-8 text-sm" />
                   </TableCell>
                 </TableRow>
               ))}
@@ -52,7 +107,11 @@ export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
 
         <DialogFooter className="pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="shadow-md">Execute Batch Update</Button>
+          <Button
+            className="shadow-md"
+            disabled={isLoading}>
+            Execute Batch Update
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

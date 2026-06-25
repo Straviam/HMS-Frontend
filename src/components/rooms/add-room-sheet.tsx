@@ -114,7 +114,7 @@ export function AddRoomSheet({ open, onOpenChange }: AddRoomSheetProps) {
         </div>
 
         <SheetFooter>
-          <Button onClick={handleSave} className="w-full gap-2 shadow-md">
+          <Button onClick={handleSave} className="w-full gap-2 shadow-md" disabled={isLoading}>
             <IconDeviceFloppy size={18} />
             Commit to Database
           </Button>

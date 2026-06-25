@@ -1,385 +1,201 @@
-// import React, { useState, useEffect, useMemo } from "react";
-// import { Input } from "@/components/ui/input";
-// import { Button } from "@/components/ui/button";
-// import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-// import { Label } from "@/components/ui/label";
-// import { Card, CardContent } from "@/components/ui/card";
-
-// // 1. STRICT TYPESCRIPT INTERFACES
-// export interface Patient {
-//   mrNo: string;
-//   fname: string;
-//   lname: string;
-//   phone: string;
-//   cnic: string;
-//   dob: string;
-//   gender: string;
-//   bloodGroup: string;
-//   address: string;
-// }
-
-// export interface Room {
-//   id: string;
-//   roomNO: string;
-//   roomType: string;
-//   pricePerDay: number;
-//   status: "Available" | "Occupied" | "Cleaning" | "Maintenance";
-//   lastCleanedAt?: string;
-//   createdAt?: string;
-// }
-
-// // --- MOCK DATA (To be replaced by APIs) ---
-// const MOCK_PATIENTS: Patient[] = [
-//   { mrNo: "MR-1001", fname: "Ahmed", lname: "Khan", phone: "03001234567", cnic: "42101-1234567-1", dob: "1990-01-01", gender: "Male", bloodGroup: "O+", address: "Karachi" },
-//   { mrNo: "MR-1002", fname: "Fatima", lname: "Ali", phone: "03009876543", cnic: "42101-9876543-2", dob: "1985-05-15", gender: "Female", bloodGroup: "A+", address: "Lahore" }
-// ];
-
-// const MOCK_ALL_ROOMS: Room[] = [
-//   { id: "1", roomNO: "ICU-01", roomType: "ICU", pricePerDay: 5000, status: "Occupied" },
-//   { id: "2", roomNO: "ICU-02", roomType: "ICU", pricePerDay: 5000, status: "Available" },
-//   { id: "3", roomNO: "GEN-101", roomType: "General Ward", pricePerDay: 1500, status: "Available" },
-//   { id: "4", roomNO: "GEN-102", roomType: "General Ward", pricePerDay: 1500, status: "Available" },
-//   { id: "5", roomNO: "VIP-204", roomType: "VIP Suite", pricePerDay: 12000, status: "Available" },
-// ];
-
-// export default function RoomAdmissionUI() {
-//   // --- STATE ---
-//   const [searchTerm, setSearchTerm] = useState<string>("");
-//   const [searchResults, setSearchResults] = useState<Patient[]>([]);
-//   const [hasSearched, setHasSearched] = useState<boolean>(false);
-
-//   // Sheet State
-//   const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
-//   const [activePatient, setActivePatient] = useState<Patient | null>(null);
-//   const [selectedType, setSelectedType] = useState<string>("");
-//   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-
-//   // --- API DATA SIMULATION ---
-//   // TODO: API ENDPOINT - GET /api/rooms
-//   // Fetch your rooms data in a useEffect on mount and set it to a state instead of using this mock.
-//   const allRoomsFromServer = MOCK_ALL_ROOMS;
-
-//   // --- FRONTEND DATA DERIVATION ---
-//   const availableRooms = useMemo<Room[]>(() =>
-//     allRoomsFromServer.filter(r => r.status === "Available")
-//   , [allRoomsFromServer]);
-
-//   // Calculate dynamic stats for the top divs
-//   const roomStats = useMemo(() => {
-//     const counts: Record<string, number> = {};
-//     availableRooms.forEach(room => {
-//       counts[room.roomType] = (counts[room.roomType] || 0) + 1;
-//     });
-//     return counts;
-//   }, [availableRooms]);
-
-//   const availableRoomTypes = Object.keys(roomStats);
-
-//   const roomsToShow = useMemo<Room[]>(() =>
-//     availableRooms.filter(r => r.roomType === selectedType)
-//   , [availableRooms, selectedType]);
-
-//   // --- DEBOUNCED SEARCH LOGIC ---
-//   useEffect(() => {
-//     if (!searchTerm.trim()) {
-//       setSearchResults([]);
-//       setHasSearched(false);
-//       return;
-//     }
-
-//     const delayDebounceFn = setTimeout(() => {
-//       setHasSearched(true);
-
-//       // TODO: API ENDPOINT - GET /api/patients?search=${searchTerm}
-//       // Replace this mock filter with your actual fetch call
-//       const normalizedTerm = searchTerm.toLowerCase();
-//       const results = MOCK_PATIENTS.filter(p =>
-//         p.phone.includes(searchTerm) ||
-//         p.cnic.includes(searchTerm) ||
-//         p.mrNo.toLowerCase().includes(normalizedTerm)
-//       );
-
-//       setSearchResults(results);
-//     }, 500);
-
-//     return () => clearTimeout(delayDebounceFn);
-//   }, [searchTerm]);
-
-//   // --- HANDLERS ---
-//   const openAdmissionSheet = (patient: Patient) => {
-//     setActivePatient(patient);
-//     setSelectedType("");
-//     setSelectedRoom(null);
-//     setIsSheetOpen(true);
-//   };
-
-//   const handleConfirmAdmission = async () => {
-//     if (!activePatient || !selectedRoom) return;
-
-//     // TODO: API ENDPOINT - POST /api/admissions
-//     /* try {
-//         await axios.post('/api/admissions', {
-//           patientId: activePatient.mrNo,
-//           roomId: selectedRoom.id
-//         });
-//         // On success: trigger a re-fetch of your rooms to update the stats
-//       } catch(error) { ... }
-//     */
-
-//     alert(`Success! Admitted ${activePatient.fname} ${activePatient.lname} to ${selectedRoom.roomNO}.`);
-
-//     setIsSheetOpen(false);
-//     setActivePatient(null);
-//     setSearchTerm("");
-//   };
-
-//   return (
-//     <div className="p-4 max-w-5xl mx-auto space-y-6">
-
-//       {/* 1. SEARCH AREA & ROOM STATS */}
-//       <Card className="border-0 shadow-sm bg-primary/5">
-//         <CardContent className="p-6 space-y-6">
-
-//           <div className="space-y-3">
-//             <Label className="text-lg font-heading font-semibold text-primary">Patient Admission Search</Label>
-//             <Input
-//               placeholder="Scan or type MR No, Phone, or CNIC..."
-//               value={searchTerm}
-//               onChange={(e) => setSearchTerm(e.target.value)}
-//               className="h-14 text-lg shadow-inner bg-white max-w-2xl"
-//             />
-//           </div>
-
-//           {/* DYNAMIC ROOM AVAILABILITY DIVS */}
-//           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 pt-4 border-t border-primary/10">
-//             {/* Total Available Block */}
-//             <div className="bg-primary text-primary-foreground p-3 rounded-lg flex flex-col justify-center items-center shadow-sm">
-//               <span className="text-2xl font-bold">{availableRooms.length}</span>
-//               <span className="text-xs uppercase tracking-wider opacity-90">Total Available</span>
-//             </div>
-
-//             {/* Dynamic Type Blocks */}
-//             {Object.entries(roomStats).map(([type, count]) => (
-//               <div key={type} className="bg-white border border-primary/20 p-3 rounded-lg flex flex-col justify-center items-center shadow-sm">
-//                 <span className="text-2xl font-bold text-slate-700">{count}</span>
-//                 <span className="text-xs uppercase tracking-wider text-muted-foreground">{type}</span>
-//               </div>
-//             ))}
-//           </div>
-
-//         </CardContent>
-//       </Card>
-
-//       {/* 2. SEARCH RESULTS AREA */}
-//       {hasSearched && (
-//         <div className="space-y-4 animate-in fade-in duration-300">
-//           <h2 className="font-bold text-xl">Search Results</h2>
-
-//           {searchResults.length === 0 ? (
-//              <div className="p-8 text-center border border-dashed rounded-lg bg-muted/20">
-//                <p className="text-muted-foreground">No patient found matching "{searchTerm}".</p>
-//              </div>
-//           ) : (
-//             <div className="grid gap-3">
-//               {searchResults.map(patient => (
-//                 // EXACT Patient Card styling from previous component
-//                 <Card key={patient.mrNo} className="overflow-hidden">
-//                   <div className="flex flex-col sm:flex-row justify-between items-center p-4 sm:p-0">
-//                     <div className="p-4 sm:px-6 w-full">
-//                       <p className="font-bold text-lg">{patient.fname} {patient.lname}</p>
-//                       <p className="text-sm text-muted-foreground mt-1">MR: {patient.mrNo} • Phone: {patient.phone}</p>
-//                     </div>
-//                     <div className="flex gap-2 sm:px-6 w-full sm:w-auto mt-4 sm:mt-0 sm:border-l sm:h-20 items-center bg-slate-50/50">
-//                       <Button onClick={() => openAdmissionSheet(patient)}>Assign Room</Button>
-//                     </div>
-//                   </div>
-//                 </Card>
-//               ))}
-//             </div>
-//           )}
-//         </div>
-//       )}
-
-//       {/* 3. THE ADMISSION SHEET (Drawer) */}
-//       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-//         <SheetContent className="sm:max-w-md overflow-y-auto p-6">
-//           <SheetHeader className="mb-6">
-//             <SheetTitle className="uppercase tracking-wider text-primary">Inpatient Admission</SheetTitle>
-//             <SheetDescription>
-//               Assigning a bed for <strong>{activePatient?.fname} {activePatient?.lname}</strong>
-//             </SheetDescription>
-//           </SheetHeader>
-
-//           <div className="space-y-6">
-//             {/* Patient Context Summary */}
-//             <div className="bg-slate-100 p-4 text-sm rounded-lg flex items-center justify-between border border-slate-200">
-//               <div>
-//                 <p className="text-muted-foreground text-xs uppercase tracking-wider">Patient</p>
-//                 <strong className="text-base">{activePatient?.fname} {activePatient?.lname}</strong>
-//               </div>
-//               <div className="text-right">
-//                 <p className="text-muted-foreground text-xs uppercase tracking-wider">MR No</p>
-//                 <strong>{activePatient?.mrNo}</strong>
-//               </div>
-//             </div>
-
-//             <div className="space-y-2">
-//               <Label>Required Level of Care</Label>
-//               <Select
-//                 {...(selectedType ? { value: selectedType } : {})}
-//                 onValueChange={(val: string) => {
-//                   setSelectedType(val);
-//                   setSelectedRoom(null);
-//                 }}
-//               >
-//                 <SelectTrigger className="h-12 text-lg">
-//                   <SelectValue placeholder="Select Category..." />
-//                 </SelectTrigger>
-//                 <SelectContent>
-//                   {availableRoomTypes.map(type => (
-//                     <SelectItem key={type} value={type}>{type}</SelectItem>
-//                   ))}
-//                 </SelectContent>
-//               </Select>
-//             </div>
-
-//             {selectedType && (
-//               <div className="space-y-3 border-t pt-4">
-//                 <Label>Available {selectedType} Beds</Label>
-
-//                 {roomsToShow.length === 0 ? (
-//                   <p className="text-sm text-destructive font-medium p-4 bg-destructive/10 rounded-md">
-//                     No available beds for this category.
-//                   </p>
-//                 ) : (
-//                   <div className="grid grid-cols-2 gap-3">
-//                     {roomsToShow.map(room => (
-//                       <div
-//                         key={room.id}
-//                         onClick={() => setSelectedRoom(room)}
-//                         className={`
-//                           cursor-pointer border-2 rounded-xl p-4 transition-all text-center
-//                           ${selectedRoom?.id === room.id
-//                             ? "bg-primary/10 border-primary ring-2 ring-primary/20 ring-offset-1"
-//                             : "bg-white hover:border-primary/40 border-muted"}
-//                         `}
-//                       >
-//                         <p className="font-bold text-lg">{room.roomNO}</p>
-//                         <p className="text-sm text-muted-foreground font-medium mt-1">Rs {room.pricePerDay}</p>
-//                       </div>
-//                     ))}
-//                   </div>
-//                 )}
-//               </div>
-//             )}
-
-//             <div className="pt-6 border-t mt-auto">
-//               <Button
-//                 className="w-full h-14 text-lg"
-//                 disabled={!selectedRoom}
-//                 onClick={handleConfirmAdmission}
-//               >
-//                 {selectedRoom
-//                   ? `Confirm Booking (${selectedRoom.roomNO})`
-//                   : "Please select a room"}
-//               </Button>
-//             </div>
-//           </div>
-//         </SheetContent>
-//       </Sheet>
-//     </div>
-//   );
-// }
-
 import React, { useState, useEffect, useMemo } from "react";
+import { Link, useLoaderData } from "react-router";
+import {
+  IconBed,
+  IconActivity,
+  IconSearch,
+  IconUserPlus,
+  IconDoorExit,
+  IconPlus,
+  IconTool,
+  IconEmergencyBed,
+} from "@tabler/icons-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { getApiOptions } from "@/lib/utils";
+import { toast } from "sonner";
 
-// 1. STRICT TYPESCRIPT INTERFACES
-export interface Patient {
-  mrNo: string;
-  fname: string;
-  lname: string;
-  phone: string;
-  cnic: string;
-  dob: string;
-  gender: string;
-  bloodGroup: string;
-  address: string;
-}
+// --- TYPES (Exactly matching your API payload) ---
+export type RoomStatus =
+  | "AVAILABLE"
+  | "OCCUPIED"
+  | "CLEANING"
+  | "UNDER_MAINTENANCE";
 
 export interface Room {
   id: string;
-  roomNO: string;
+  roomNumber: string;
   roomType: string;
-  pricePerDay: number;
-  status: "Available" | "Occupied" | "Cleaning" | "Maintenance";
-  lastCleanedAt?: string;
-  createdAt?: string;
-  // Included for the frontend to show who is currently in the room
+  price: string;
+  status: RoomStatus;
+  lastCleanedAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+  // Note: If backend adds current occupant details later, add them here
   currentPatientName?: string;
   currentPatientMrNo?: string;
 }
 
-// --- MOCK DATA (To be replaced by APIs) ---
-const MOCK_PATIENTS: Patient[] = [
-  { mrNo: "MR-1001", fname: "Ahmed", lname: "Khan", phone: "03001234567", cnic: "42101-1234567-1", dob: "1990-01-01", gender: "Male", bloodGroup: "O+", address: "Karachi" },
-  { mrNo: "MR-1002", fname: "Fatima", lname: "Ali", phone: "03009876543", cnic: "42101-9876543-2", dob: "1985-05-15", gender: "Female", bloodGroup: "A+", address: "Lahore" }
-];
+export interface Patient {
+  id: string;
+  mrNumber: string;
+  firstName: string;
+  lastName: string;
+  cnic: string;
+  gender: string;
+  dateOfBirth: string;
+  phone: string;
+  bloodGroup: string;
+  address: string;
+  createdAt: string;
+}
 
-const MOCK_ALL_ROOMS: Room[] = [
-  { id: "1", roomNO: "ICU-01", roomType: "ICU", pricePerDay: 5000, status: "Occupied", currentPatientName: "Fatima Ali", currentPatientMrNo: "MR-1002" },
-  { id: "2", roomNO: "ICU-02", roomType: "ICU", pricePerDay: 5000, status: "Available" },
-  { id: "3", roomNO: "GEN-101", roomType: "General Ward", pricePerDay: 1500, status: "Available" },
-  { id: "4", roomNO: "GEN-102", roomType: "General Ward", pricePerDay: 1500, status: "Cleaning" },
-  { id: "5", roomNO: "VIP-204", roomType: "VIP Suite", pricePerDay: 12000, status: "Occupied", currentPatientName: "John Doe", currentPatientMrNo: "MR-9999" },
-];
+interface LoaderData {
+  rooms: Room[];
+  stats: {
+    total: number;
+    occupied: number;
+    maintenance: number;
+    cleaning: number;
+    available: number;
+  };
+  patients: Patient[];
+}
 
-export default function RoomAdmissionUI() {
-  // --- STATE: ADMISSIONS ---
+// --- LOADER ---
+export async function ReceptionBedLoader(): Promise<LoaderData> {
+  try {
+    const [roomRes, statsRes, patientRes] = await Promise.all([
+      fetch("http://localhost:4040/api/v1/rooms", getApiOptions),
+      fetch("http://localhost:4040/api/v1/rooms/stats", getApiOptions),
+      fetch("http://localhost:4040/api/v1/patients", getApiOptions),
+    ]);
+
+    if (!roomRes.ok) throw new Error("Failed to fetch rooms list.");
+    if (!statsRes.ok) throw new Error("Failed to fetch hospital stats.");
+    if (!patientRes.ok) throw new Error("Failed to fetch patients list.");
+
+    const roomData = await roomRes.json();
+    const statsData = await statsRes.json();
+    const patientData = await patientRes.json();
+
+    return {
+      rooms: roomData.data,
+      stats: statsData.data,
+      patients: patientData.data.patients, // Extracting the array directly
+    };
+  } catch (error) {
+    console.error(
+      "Loader Exception:",
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    throw new Response("Failed to load Reception data from server.", {
+      status: 500,
+      statusText:
+        error instanceof Error ? error.message : "Internal Server Error",
+    });
+  }
+}
+
+// Helper for Status Styling
+const getStatusBadge = (status: RoomStatus) => {
+  switch (status) {
+    case "AVAILABLE":
+      return (
+        <Badge
+          variant="outline"
+          className="text-primary border-primary/50 bg-primary/5"
+        >
+          Available
+        </Badge>
+      );
+    case "OCCUPIED":
+      return (
+        <Badge className="bg-primary text-primary-foreground">Occupied</Badge>
+      );
+    case "CLEANING":
+      return (
+        <Badge
+          variant="secondary"
+          className="bg-amber-500/20 text-amber-700 border-amber-500/30 border"
+        >
+          Cleaning
+        </Badge>
+      );
+    case "UNDER_MAINTENANCE":
+      return (
+        <Badge
+          variant="destructive"
+          className="bg-destructive/10 text-destructive border-destructive/20 border"
+        >
+          Maintenance
+        </Badge>
+      );
+    default:
+      return <Badge variant="outline">{status}</Badge>;
+  }
+};
+export default function ReceptionRoomBooking() {
+  const { rooms, stats, patients } = useLoaderData() as LoaderData;
+  console.log(stats);
+
+  // --- STATE ---
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
 
-  // Sheet State: Admission
+  // Sheet State
   const [isAdmitSheetOpen, setIsAdmitSheetOpen] = useState<boolean>(false);
   const [activePatient, setActivePatient] = useState<Patient | null>(null);
   const [selectedType, setSelectedType] = useState<string>("");
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
-  // Sheet State: Bed Management / Discharge
   const [isManageSheetOpen, setIsManageSheetOpen] = useState<boolean>(false);
   const [manageRoom, setManageRoom] = useState<Room | null>(null);
 
-  // --- API DATA SIMULATION ---
-  const allRoomsFromServer = MOCK_ALL_ROOMS;
+  // --- DATA DERIVATION ---
+  const availableRooms = useMemo(
+    () => rooms.filter((r) => r.status === "AVAILABLE"),
+    [rooms],
+  );
 
-  // --- FRONTEND DATA DERIVATION ---
-  const availableRooms = useMemo<Room[]>(() =>
-    allRoomsFromServer.filter(r => r.status === "Available")
-  , [allRoomsFromServer]);
+  // Dynamic Room Types for the select dropdown
+  const roomTypes = useMemo(() => {
+    const types = new Set(rooms.map((r) => r.roomType));
+    return Array.from(types);
+  }, [rooms]);
 
-  const roomStats = useMemo(() => {
-    const counts: Record<string, number> = {};
-    availableRooms.forEach(room => {
-      counts[room.roomType] = (counts[room.roomType] || 0) + 1;
-    });
-    return counts;
-  }, [availableRooms]);
+  const roomsToShowForAdmission = useMemo(
+    () => availableRooms.filter((r) => r.roomType === selectedType),
+    [availableRooms, selectedType],
+  );
 
-  const availableRoomTypes = Object.keys(roomStats);
-
-  const roomsToShowForAdmission = useMemo<Room[]>(() =>
-    availableRooms.filter(r => r.roomType === selectedType)
-  , [availableRooms, selectedType]);
-
-  // --- DEBOUNCED SEARCH LOGIC ---
+  // --- SEARCH LOGIC ---
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSearchResults([]);
@@ -389,20 +205,21 @@ export default function RoomAdmissionUI() {
 
     const delayDebounceFn = setTimeout(() => {
       setHasSearched(true);
-      // TODO: API ENDPOINT - GET /api/patients?search=${searchTerm}
       const normalizedTerm = searchTerm.toLowerCase();
-      const results = MOCK_PATIENTS.filter(p =>
-        p.phone.includes(searchTerm) ||
-        p.cnic.includes(searchTerm) ||
-        p.mrNo.toLowerCase().includes(normalizedTerm)
+
+      const results = patients.filter(
+        (p) =>
+          p.phone.includes(searchTerm) ||
+          p.cnic.includes(searchTerm) ||
+          p.mrNumber.toLowerCase().includes(normalizedTerm),
       );
       setSearchResults(results);
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
+  }, [searchTerm, patients]);
 
-  // --- HANDLERS: ADMISSION ---
+  // --- HANDLERS ---
   const openAdmissionSheet = (patient: Patient) => {
     setActivePatient(patient);
     setSelectedType("");
@@ -412,14 +229,15 @@ export default function RoomAdmissionUI() {
 
   const handleConfirmAdmission = async () => {
     if (!activePatient || !selectedRoom) return;
-    // TODO: API ENDPOINT - POST /api/admissions (Create booking, set room to Occupied)
-    alert(`Success! Admitted ${activePatient.fname} to ${selectedRoom.roomNO}.`);
+    // TODO: POST /api/v1/admissions
+    toast(
+      `Success! Admitted ${activePatient.firstName} to ${selectedRoom.roomNumber}.`,
+    );
     setIsAdmitSheetOpen(false);
     setActivePatient(null);
     setSearchTerm("");
   };
 
-  // --- HANDLERS: DISCHARGE ---
   const openManageSheet = (room: Room) => {
     setManageRoom(room);
     setIsManageSheetOpen(true);
@@ -427,191 +245,368 @@ export default function RoomAdmissionUI() {
 
   const handleDischargePatient = async () => {
     if (!manageRoom) return;
-    // TODO: API ENDPOINT - POST /api/discharge (End booking, set room to Cleaning)
-    alert(`Discharged patient from ${manageRoom.roomNO}. Room status changed to 'Cleaning'.`);
+    // TODO: POST /api/v1/admissions/discharge
+    toast(`Discharged patient from ${manageRoom.roomNumber}.`);
     setIsManageSheetOpen(false);
     setManageRoom(null);
   };
 
   return (
-    <div className="p-4 max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">
+            Reception & Admissions
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Manage patient admissions, search records, and assign beds.
+          </p>
+        </div>
+      </div>
 
-      {/* GLOBAL ROOM STATS */}
-      <Card className="border-0 shadow-sm bg-primary/5">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            <div className="bg-primary text-primary-foreground p-3 rounded-lg flex flex-col justify-center items-center shadow-sm">
-              <span className="text-2xl font-bold">{availableRooms.length}</span>
-              <span className="text-xs uppercase tracking-wider opacity-90">Total Available</span>
+      {/* KPI Dashboard (Matching Admin Cleanliness) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="shadow-sm border-l-4 border-l-primary">
+          <CardContent className="p-6 flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">
+                Available Beds
+              </span>
+              <IconBed size={20} className="text-primary/70" />
             </div>
-            {Object.entries(roomStats).map(([type, count]) => (
-              <div key={type} className="bg-white border border-primary/20 p-3 rounded-lg flex flex-col justify-center items-center shadow-sm">
-                <span className="text-2xl font-bold text-slate-700">{count}</span>
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">{type}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-3xl font-heading font-bold text-primary">
+                {stats.available}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                / {stats.total} Total
+              </span>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* TABS: ADMISSIONS vs BED BOARD */}
+        <Card className="shadow-sm">
+          <CardContent className="p-6 flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">
+                Occupied Beds
+              </span>
+              <IconActivity size={20} className="text-muted-foreground/50" />
+            </div>
+            <span className="text-3xl font-heading font-bold">
+              {stats.occupied}
+            </span>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardContent className="p-6 flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">
+                Needs Cleaning
+              </span>
+              <IconActivity size={20} className="text-amber-500/70" />
+            </div>
+            <span className="text-3xl font-heading font-bold">
+              {stats.cleaning}
+            </span>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardContent className="p-6 flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">
+                Maintenance
+              </span>
+              <IconTool size={20} className="text-destructive/70" />
+            </div>
+            <span className="text-3xl font-heading font-bold">
+              {stats.maintenance}
+            </span>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Tabs */}
       <Tabs defaultValue="admissions" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
           <TabsTrigger value="admissions">New Admission</TabsTrigger>
-          <TabsTrigger value="bedboard">Bed Board (All Rooms)</TabsTrigger>
+          <TabsTrigger value="bedboard">Live Bed Board</TabsTrigger>
         </TabsList>
 
         {/* --- TAB 1: ADMISSIONS --- */}
         <TabsContent value="admissions" className="space-y-6">
-          <div className="space-y-3">
-            <Label className="text-lg font-heading font-semibold text-primary">Patient Admission Search</Label>
-            <Input
-              placeholder="Scan or type MR No, Phone, or CNIC..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-14 text-lg shadow-inner bg-white max-w-2xl"
-            />
-          </div>
-
-          {hasSearched && (
-            <div className="space-y-4 animate-in fade-in duration-300">
-              <h2 className="font-bold text-xl">Search Results</h2>
-              {searchResults.length === 0 ? (
-                 <div className="p-8 text-center border border-dashed rounded-lg bg-muted/20">
-                   <p className="text-muted-foreground">No patient found matching "{searchTerm}".</p>
-                 </div>
-              ) : (
-                <div className="grid gap-3">
-                  {searchResults.map(patient => (
-                    <Card key={patient.mrNo} className="overflow-hidden">
-                      <div className="flex flex-col sm:flex-row justify-between items-center p-4 sm:p-0">
-                        <div className="p-4 sm:px-6 w-full">
-                          <p className="font-bold text-lg">{patient.fname} {patient.lname}</p>
-                          <p className="text-sm text-muted-foreground mt-1">MR: {patient.mrNo} • Phone: {patient.phone}</p>
-                        </div>
-                        <div className="flex gap-2 sm:px-6 w-full sm:w-auto mt-4 sm:mt-0 sm:border-l sm:h-20 items-center bg-slate-50/50">
-                          <Button onClick={() => openAdmissionSheet(patient)}>Assign Room</Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
+          <Card className="border-0 shadow-sm bg-muted/30">
+            <CardContent className="p-6">
+              <div className="space-y-3 max-w-2xl">
+                <Label className="text-lg font-heading font-semibold">
+                  Patient Search
+                </Label>
+                <div className="relative">
+                  <IconSearch className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    placeholder="Scan or type MR No, Phone, or CNIC..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 h-12 text-base bg-background shadow-sm"
+                  />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* RESULTS AREA */}
+          {hasSearched && (
+            <div className="border p-4 rounded-md space-y-4">
+              <h2 className="font-bold">Results:</h2>
+
+              {searchResults.length === 0 ? (
+                <div className="space-y-4">
+                  <p>No patient found.</p>
+                  <Button asChild className="gap-2">
+                    <Link to="/receptionist" />
+                    <IconPlus size={18} />
+                    Add New Patient
+                  </Button>
+                </div>
+              ) : (
+                searchResults.map((patient) => (
+                  <div
+                    key={patient.mrNumber}
+                    className="border p-4 flex justify-between items-center bg-slate-50"
+                  >
+                    <div>
+                      <p className="font-bold">
+                        {patient.firstName} {patient.lastName}
+                      </p>
+                      <p className="text-sm">
+                        MR: {patient.mrNumber} | Phone: {patient.phone}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={() => openAdmissionSheet(patient)}>
+                        Assign Room
+                      </Button>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           )}
         </TabsContent>
 
-        {/* --- TAB 2: BED BOARD --- */}
-        <TabsContent value="bedboard" className="space-y-6 animate-in fade-in duration-300">
-          <h2 className="font-bold text-xl mb-4">Current Ward Status</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {allRoomsFromServer.map(room => (
+        {/* --- TAB 2: BED BOARD (Mirrored from Admin Panel) --- */}
+        <TabsContent
+          value="bedboard"
+          className="animate-in fade-in duration-300"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pt-4">
+            {rooms.map((room) => (
               <Card
                 key={room.id}
-                className={`overflow-hidden border-l-4 transition-all ${
-                  room.status === 'Available' ? 'border-l-emerald-500' :
-                  room.status === 'Occupied' ? 'border-l-red-500 cursor-pointer hover:shadow-md' :
-                  room.status === 'Cleaning' ? 'border-l-yellow-500' : 'border-l-slate-500'
+                className={`flex flex-col overflow-hidden transition-all hover:shadow-md ${
+                  room.status === "UNDER_MAINTENANCE" ||
+                  room.status === "CLEANING"
+                    ? "opacity-70 bg-muted/30 border-dashed"
+                    : ""
                 }`}
-                onClick={() => room.status === 'Occupied' && openManageSheet(room)}
               >
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="font-bold text-lg">{room.roomNO}</p>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      room.status === 'Available' ? 'bg-emerald-100 text-emerald-700' :
-                      room.status === 'Occupied' ? 'bg-red-100 text-red-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {room.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">{room.roomType}</p>
-
-                  {room.status === 'Occupied' && (
-                    <div className="mt-3 pt-3 border-t text-sm bg-red-50/50 -mx-4 -mb-4 p-4">
-                      <p className="font-semibold text-slate-800">{room.currentPatientName}</p>
-                      <p className="text-muted-foreground text-xs">{room.currentPatientMrNo}</p>
-                      <p className="text-xs text-red-600 font-medium mt-2">Click to Manage / Discharge</p>
+                <CardHeader className="pb-3 flex flex-row items-start justify-between">
+                  <div>
+                    <CardTitle className="text-xl font-heading font-bold tracking-tight">
+                      {room.roomNumber}
+                    </CardTitle>
+                    <div className="text-sm text-muted-foreground font-medium mt-1">
+                      {room.roomType.toUpperCase()}
                     </div>
-                  )}
+                  </div>
+                  {getStatusBadge(room.status)}
+                </CardHeader>
+
+                <CardContent className="flex-1 pb-4">
+                  <div className="grid grid-cols-1 gap-4 text-sm bg-muted/30 p-3 rounded-lg border border-border/50">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-xs uppercase tracking-wider">
+                        Rate
+                      </span>
+                      <span className="font-mono font-medium">
+                        Rs {Number(room.price).toLocaleString()}/Day
+                      </span>
+                    </div>
+                  </div>
                 </CardContent>
+
+                <CardFooter className="pt-0 border-t bg-card/50 px-6 py-3">
+                  <div className="w-full flex items-center justify-end">
+                    {room.status === "OCCUPIED" ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => openManageSheet(room)}
+                      >
+                        <IconDoorExit size={16} />
+                        Discharge Options
+                      </Button>
+                    ) : room.status === "AVAILABLE" ? (
+                      <div>Ready for Admission</div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">
+                        Unavailable
+                      </span>
+                    )}
+                  </div>
+                </CardFooter>
               </Card>
             ))}
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* --- SHEET 1: ADMISSION (Unchanged logic) --- */}
+      {/* --- SHEET: ADMISSION --- */}
       <Sheet open={isAdmitSheetOpen} onOpenChange={setIsAdmitSheetOpen}>
-        <SheetContent className="sm:max-w-md overflow-y-auto p-6">
-          <SheetHeader className="mb-6">
-            <SheetTitle className="uppercase tracking-wider text-primary">Inpatient Admission</SheetTitle>
+        <SheetContent className="sm:max-w-md overflow-y-auto p-5">
+          <SheetHeader>
+            <SheetTitle className="font-heading text-2xl flex items-center gap-2">
+              <IconEmergencyBed className="text-primary" />
+              Admit Patient
+            </SheetTitle>
+            <SheetDescription>
+              Select ward and bed for the incoming patient.
+            </SheetDescription>
           </SheetHeader>
+
           <div className="space-y-6">
-            {/* Abbreviated for space, exact same content as previous component */}
-            <div className="bg-slate-100 p-4 text-sm rounded-lg flex justify-between border">
-              <div><p className="text-xs uppercase">Patient</p><strong>{activePatient?.fname} {activePatient?.lname}</strong></div>
-              <div className="text-right"><p className="text-xs uppercase">MR No</p><strong>{activePatient?.mrNo}</strong></div>
+            <div className="bg-muted p-4 rounded-lg border flex justify-between items-center">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Patient
+                </p>
+                <p className="font-bold">
+                  {activePatient?.firstName} {activePatient?.lastName}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                  MR No
+                </p>
+                <p className="font-mono font-medium">
+                  {activePatient?.mrNumber}
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Required Level of Care</Label>
-              <Select {...(selectedType ? { value: selectedType } : {})} onValueChange={(val) => { setSelectedType(val); setSelectedRoom(null); }}>
-                <SelectTrigger className="h-12"><SelectValue placeholder="Select Category..." /></SelectTrigger>
-                <SelectContent>{availableRoomTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent>
+
+            <div className="space-y-3">
+              <Label>Level of Care (Ward Type)</Label>
+              <Select
+                value={selectedType}
+                onValueChange={(val) => {
+                  setSelectedType(val);
+                  setSelectedRoom(null);
+                }}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select Category..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {roomTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type.toUpperCase()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
+
             {selectedType && (
               <div className="space-y-3 border-t pt-4">
-                <Label>Available {selectedType} Beds</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {roomsToShowForAdmission.map(room => (
-                    <div key={room.id} onClick={() => setSelectedRoom(room)} className={`cursor-pointer border-2 rounded-xl p-4 text-center ${selectedRoom?.id === room.id ? "border-primary ring-2 ring-primary/20" : "bg-white border-muted"}`}>
-                      <p className="font-bold text-lg">{room.roomNO}</p>
-                      <p className="text-sm text-muted-foreground mt-1">Rs {room.pricePerDay}</p>
-                    </div>
-                  ))}
-                </div>
+                <Label>Available {selectedType.toUpperCase()} Beds</Label>
+                {roomsToShowForAdmission.length === 0 ? (
+                  <p className="text-sm text-destructive font-medium p-3 bg-destructive/10 rounded border border-destructive/20">
+                    No available beds in this category.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {roomsToShowForAdmission.map((room) => (
+                      <div
+                        key={room.id}
+                        onClick={() => setSelectedRoom(room)}
+                        className={`cursor-pointer border-2 rounded-xl p-4 text-center transition-all ${
+                          selectedRoom?.id === room.id
+                            ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                            : "bg-card border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <p className="font-bold font-heading text-lg">
+                          {room.roomNumber}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Rs {Number(room.price).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-            <Button className="w-full h-14 mt-auto" disabled={!selectedRoom} onClick={handleConfirmAdmission}>
-              {selectedRoom ? `Confirm Booking (${selectedRoom.roomNO})` : "Select a room"}
-            </Button>
           </div>
+          <SheetFooter className="mt-auto pt-4 border-t border-border/50">
+            <Button
+              className="w-full gap-2 shadow-md"
+              disabled={!selectedRoom}
+              onClick={handleConfirmAdmission}
+            >
+              {selectedRoom
+                ? `Confirm Admission to ${selectedRoom.roomNumber}`
+                : "Select a bed to continue"}
+            </Button>
+          </SheetFooter>
         </SheetContent>
       </Sheet>
 
-      {/* --- SHEET 2: DISCHARGE / MANAGE --- */}
+      {/* --- SHEET: DISCHARGE --- */}
       <Sheet open={isManageSheetOpen} onOpenChange={setIsManageSheetOpen}>
-        <SheetContent className="sm:max-w-md p-6 border-l-red-500 border-l-4">
+        <SheetContent className="sm:max-w-md">
           <SheetHeader className="mb-6">
-            <SheetTitle className="text-red-600">Manage Occupied Room</SheetTitle>
-            <SheetDescription>Room <strong>{manageRoom?.roomNO}</strong></SheetDescription>
+            <SheetTitle className="font-heading text-2xl">
+              Manage Occupancy
+            </SheetTitle>
+            <SheetDescription>
+              Room {manageRoom?.roomNumber} -{" "}
+              {manageRoom?.roomType.toUpperCase()}
+            </SheetDescription>
           </SheetHeader>
 
           <div className="space-y-6">
-            <div className="bg-red-50 border border-red-100 p-4 rounded-lg space-y-2">
-              <Label className="text-red-800">Current Occupant</Label>
-              <p className="font-bold text-lg text-slate-900">{manageRoom?.currentPatientName}</p>
-              <p className="text-sm text-slate-600">MR: {manageRoom?.currentPatientMrNo}</p>
+            <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg space-y-1">
+              <Label className="text-primary">Current Occupant</Label>
+              <p className="font-bold font-heading text-xl">
+                {manageRoom?.currentPatientName || "Unknown"}
+              </p>
+              <p className="text-sm font-mono text-muted-foreground">
+                {manageRoom?.currentPatientMrNo || "No MR found"}
+              </p>
             </div>
 
             <div className="space-y-4 pt-6 border-t mt-auto">
               <Button
                 variant="destructive"
-                className="w-full h-14 text-lg"
+                className="w-full gap-2"
                 onClick={handleDischargePatient}
               >
-                Discharge Patient & Free Room
+                <IconDoorExit size={18} />
+                Discharge Patient & Clear Bed
               </Button>
               <p className="text-xs text-center text-muted-foreground">
-                This will finalize the billing and mark the room as "Needs Cleaning".
+                This will finalize current billing cycles and mark the room for
+                cleaning.
               </p>
             </div>
           </div>
         </SheetContent>
       </Sheet>
-
     </div>
   );
 }

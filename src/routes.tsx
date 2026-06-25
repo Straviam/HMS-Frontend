@@ -14,7 +14,8 @@ import AdminTransactionsPage, { adminTransactionLoader } from "./pages/admin/adm
 import AdminInvoicesPage, { adminInvoiceLoader } from "./pages/admin/admin-billing-page";
 import AdminFacilityPage, { adminFacilityLoader } from "./pages/admin/admin-facility-page";
 import PatientRegistry from "./pages/reception/reception-search-page";
-import RoomBooking from "./pages/reception/reception-room-booking";
+import RoomBooking, { ReceptionBedLoader } from "./pages/reception/reception-room-booking";
+import ReceptionRoomBooking from "./pages/reception/reception-room-booking";
 
 export const router = createBrowserRouter([
   {
@@ -75,8 +76,8 @@ export const router = createBrowserRouter([
           { index: true, element: <PatientRegistry /> },
           {
             path: "bookings",
-            element: <RoomBooking />,
-            loader: AdminBedLoader,
+            element: <ReceptionRoomBooking />,
+            loader: ReceptionBedLoader,
           },
         ]
       }

@@ -9,10 +9,63 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useRevalidator } from "react-router";
 
+type roomUpdates = {
+  id: string;
+  newPrice: number;
+}
+
+// TODO: Remove Any from every where
 export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
   const revalidator = useRevalidator();
   const [isLoading, setIsLoading] = useState(false);
   const [multiplier, setMultiplier] = useState(1);
+  const [updates, setUpdates] = useState<roomUpdates[]>(rooms);
+
+  const updateNewPrice = (roomId: string, newPrice: number) => {
+    setUpdates((prevUpdates) =>
+      prevUpdates.map((room) =>
+        room.id === roomId
+          ? { ...room, newPrice }
+          : room
+      )
+    )
+  }
+
+  const handleBulkPriceUpdates = async () => {
+    if (!updates) {
+      toast.error("Please provide all the details.");
+      return;
+    }
+
+    setIsLoading(true);
+    console.log(updates)
+
+    try {
+
+      const response = await fetch(`http://localhost:4040/api/v1/rooms/pricing/bulk-override`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: 'include',
+        body: JSON.stringify({
+          updates
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Something went wrong");
+      }
+
+      const result = await response.json();
+      revalidator.revalidate();
+      toast.success(result.message || `Bulk Pricing Updated  Sucessfully`);
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handelApplyGlobalMultiplier = async () => {
     if (!multiplier) {
@@ -97,7 +150,10 @@ export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
                   <TableCell className="text-muted-foreground">{room.roomType}</TableCell>
                   <TableCell>Rs {room.price}</TableCell>
                   <TableCell>
-                    <Input type="number" defaultValue={room.price} className="w-32 h-8 text-sm" />
+                    <Input type="number"
+                      defaultValue={room.price}
+                      onChange={(e) => updateNewPrice(room.id, parseFloat(e.target.value))}
+                      className="w-32 h-8 text-sm" />
                   </TableCell>
                 </TableRow>
               ))}
@@ -109,6 +165,7 @@ export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             className="shadow-md"
+            onClick={handleBulkPriceUpdates}
             disabled={isLoading}>
             Execute Batch Update
           </Button>

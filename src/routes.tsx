@@ -3,7 +3,7 @@ import LoginPage from "./pages/login-page";
 import AdminLayout, { AdminErrorBoundary } from "./layouts/admin-layout";
 import AdminDashboard, { adminDashboardLoader } from "./pages/admin-dashboard";
 import NotFound from "./pages/not-found";
-import  ReceptionLayout  from "./layouts/reception-layout";
+import ReceptionLayout from "./layouts/reception-layout";
 import ReceptionDashboard from "./pages/reception-dashboard";
 import { RoleRedirector } from "./components/auth/role-redirector";
 import Unauthorized from "./pages/unauthorized";
@@ -11,7 +11,7 @@ import AdminBedsPage, { AdminBedLoader } from "./pages/admin/admin-bed-page";
 import AdminDoctorsPage, { AdminDoctorLoader } from "./pages/admin/admin-doctor-page";
 import AdminPatientsPage, { adminPatientLoader } from "./pages/admin/admin-patient-page";
 import AdminTransactionsPage, { adminTransactionLoader } from "./pages/admin/admin-transaction-page";
-import AdminInvoicesPage, { adminInvoiceLoader } from "./pages/admin/admin-billing-page";
+import AdminInvoicesPage, { adminInvoiceLoader } from "./pages/admin/admin-billing-page-2";
 import AdminFacilityPage, { adminFacilityLoader } from "./pages/admin/admin-facility-page";
 import PatientRegistry from "./pages/reception/reception-search-page";
 

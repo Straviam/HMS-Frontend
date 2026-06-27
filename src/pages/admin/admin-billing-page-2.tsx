@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { PaymentCollectionSheet } from "@/components/transaction/payment-collection-sheet";
 import { InvoiceDetailSheet } from "@/components/transaction/transaction-invoice-sheet";
+import { ManageDraftSheet } from "@/components/transaction/manage-draft-invoice-sheet";
 
 interface Invoice {
   id: string;
@@ -159,7 +160,6 @@ export default function AdminInvoicesPage() {
           </TableHeader>
           <TableBody>
             {filteredInvoices.map((inv) => {
-              // 5. Dynamic Badge Styling based on the 3 states
               let badgeColor = "";
               if (inv.status === "PAID") badgeColor = "text-green-600 border-green-500/30";
               else if (inv.status === "ISSUED") badgeColor = "text-orange-600 border-orange-500/30";
@@ -255,8 +255,11 @@ export default function AdminInvoicesPage() {
         open={!!viewReceiptId}
         onOpenChange={(open) => !open && setViewReceiptId(null)}
       />
-
-      {/* Pending Draft Sheet component will go here */}
+      <ManageDraftSheet
+        invoice={manageDraftInvoice}
+        open={!!manageDraftInvoice}
+        onOpenChange={(open) => !open && setManageDraftInvoice(null)}
+      />
     </div>
   );
 }

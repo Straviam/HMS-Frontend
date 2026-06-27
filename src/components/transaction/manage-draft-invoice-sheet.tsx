@@ -105,7 +105,7 @@ export function ManageDraftSheet({ open, onOpenChange, invoice }: ManageDraftShe
         {/* Header */}
         <SheetHeader className="border-b border-border/50 pb-4">
           <SheetTitle className="font-heading text-2xl flex items-center gap-2">
-            <IconEdit className="text-blue-500" /> Manage Draft
+            <IconEdit className="text-muted-foreground" /> Manage Draft
           </SheetTitle>
           <SheetDescription>
             Modify the running tab for {invoice.invoiceNo}

@@ -1,44 +1,21 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLoaderData } from "react-router";
 import {
   IconBed,
   IconActivity,
   IconSearch,
-  IconUserPlus,
-  IconDoorExit,
   IconPlus,
   IconTool,
-  IconEmergencyBed,
 } from "@tabler/icons-react";
+import { Card, CardContent,  } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { getApiOptions } from "@/lib/utils";
-import { toast } from "sonner";
+import { RoomBookingSheet } from "@/components/reception/room-booking-sheet";
+import { RoomDischargingSheet } from "@/components/reception/room-dicharging-sheet";
+import { LiveBedBoard } from "@/components/reception/bed-board";
 
 // --- TYPES (Exactly matching your API payload) ---
 export type RoomStatus =
@@ -122,47 +99,8 @@ export async function ReceptionBedLoader(): Promise<LoaderData> {
   }
 }
 
-// Helper for Status Styling
-const getStatusBadge = (status: RoomStatus) => {
-  switch (status) {
-    case "AVAILABLE":
-      return (
-        <Badge
-          variant="outline"
-          className="text-primary border-primary/50 bg-primary/5"
-        >
-          Available
-        </Badge>
-      );
-    case "OCCUPIED":
-      return (
-        <Badge className="bg-primary text-primary-foreground">Occupied</Badge>
-      );
-    case "CLEANING":
-      return (
-        <Badge
-          variant="secondary"
-          className="bg-amber-500/20 text-amber-700 border-amber-500/30 border"
-        >
-          Cleaning
-        </Badge>
-      );
-    case "UNDER_MAINTENANCE":
-      return (
-        <Badge
-          variant="destructive"
-          className="bg-destructive/10 text-destructive border-destructive/20 border"
-        >
-          Maintenance
-        </Badge>
-      );
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-};
 export default function ReceptionRoomBooking() {
   const { rooms, stats, patients } = useLoaderData() as LoaderData;
-  console.log(stats);
 
   // --- STATE ---
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -172,28 +110,8 @@ export default function ReceptionRoomBooking() {
   // Sheet State
   const [isAdmitSheetOpen, setIsAdmitSheetOpen] = useState<boolean>(false);
   const [activePatient, setActivePatient] = useState<Patient | null>(null);
-  const [selectedType, setSelectedType] = useState<string>("");
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-
   const [isManageSheetOpen, setIsManageSheetOpen] = useState<boolean>(false);
-  const [manageRoom, setManageRoom] = useState<Room | null>(null);
 
-  // --- DATA DERIVATION ---
-  const availableRooms = useMemo(
-    () => rooms.filter((r) => r.status === "AVAILABLE"),
-    [rooms],
-  );
-
-  // Dynamic Room Types for the select dropdown
-  const roomTypes = useMemo(() => {
-    const types = new Set(rooms.map((r) => r.roomType));
-    return Array.from(types);
-  }, [rooms]);
-
-  const roomsToShowForAdmission = useMemo(
-    () => availableRooms.filter((r) => r.roomType === selectedType),
-    [availableRooms, selectedType],
-  );
 
   // --- SEARCH LOGIC ---
   useEffect(() => {
@@ -222,33 +140,7 @@ export default function ReceptionRoomBooking() {
   // --- HANDLERS ---
   const openAdmissionSheet = (patient: Patient) => {
     setActivePatient(patient);
-    setSelectedType("");
-    setSelectedRoom(null);
     setIsAdmitSheetOpen(true);
-  };
-
-  const handleConfirmAdmission = async () => {
-    if (!activePatient || !selectedRoom) return;
-    // TODO: POST /api/v1/admissions
-    toast(
-      `Success! Admitted ${activePatient.firstName} to ${selectedRoom.roomNumber}.`,
-    );
-    setIsAdmitSheetOpen(false);
-    setActivePatient(null);
-    setSearchTerm("");
-  };
-
-  const openManageSheet = (room: Room) => {
-    setManageRoom(room);
-    setIsManageSheetOpen(true);
-  };
-
-  const handleDischargePatient = async () => {
-    if (!manageRoom) return;
-    // TODO: POST /api/v1/admissions/discharge
-    toast(`Discharged patient from ${manageRoom.roomNumber}.`);
-    setIsManageSheetOpen(false);
-    setManageRoom(null);
   };
 
   return (
@@ -265,9 +157,9 @@ export default function ReceptionRoomBooking() {
         </div>
       </div>
 
-      {/* KPI Dashboard (Matching Admin Cleanliness) */}
+      {/* KPI Dashboard  */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm border-l-4 border-l-primary">
+        <Card className="shadow-sm">
           <CardContent className="p-6 flex flex-col gap-1">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">
@@ -398,215 +290,22 @@ export default function ReceptionRoomBooking() {
         </TabsContent>
 
         {/* --- TAB 2: BED BOARD (Mirrored from Admin Panel) --- */}
-        <TabsContent
-          value="bedboard"
-          className="animate-in fade-in duration-300"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pt-4">
-            {rooms.map((room) => (
-              <Card
-                key={room.id}
-                className={`flex flex-col overflow-hidden transition-all hover:shadow-md ${
-                  room.status === "UNDER_MAINTENANCE" ||
-                  room.status === "CLEANING"
-                    ? "opacity-70 bg-muted/30 border-dashed"
-                    : ""
-                }`}
-              >
-                <CardHeader className="pb-3 flex flex-row items-start justify-between">
-                  <div>
-                    <CardTitle className="text-xl font-heading font-bold tracking-tight">
-                      {room.roomNumber}
-                    </CardTitle>
-                    <div className="text-sm text-muted-foreground font-medium mt-1">
-                      {room.roomType.toUpperCase()}
-                    </div>
-                  </div>
-                  {getStatusBadge(room.status)}
-                </CardHeader>
 
-                <CardContent className="flex-1 pb-4">
-                  <div className="grid grid-cols-1 gap-4 text-sm bg-muted/30 p-3 rounded-lg border border-border/50">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-muted-foreground text-xs uppercase tracking-wider">
-                        Rate
-                      </span>
-                      <span className="font-mono font-medium">
-                        Rs {Number(room.price).toLocaleString()}/Day
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-
-                <CardFooter className="pt-0 border-t bg-card/50 px-6 py-3">
-                  <div className="w-full flex items-center justify-end">
-                    {room.status === "OCCUPIED" ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => openManageSheet(room)}
-                      >
-                        <IconDoorExit size={16} />
-                        Discharge Options
-                      </Button>
-                    ) : room.status === "AVAILABLE" ? (
-                      <div>Ready for Admission</div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground italic">
-                        Unavailable
-                      </span>
-                    )}
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+        <LiveBedBoard rooms={rooms} />
       </Tabs>
 
       {/* --- SHEET: ADMISSION --- */}
-      <Sheet open={isAdmitSheetOpen} onOpenChange={setIsAdmitSheetOpen}>
-        <SheetContent className="sm:max-w-md overflow-y-auto p-5">
-          <SheetHeader>
-            <SheetTitle className="font-heading text-2xl flex items-center gap-2">
-              <IconEmergencyBed className="text-primary" />
-              Admit Patient
-            </SheetTitle>
-            <SheetDescription>
-              Select ward and bed for the incoming patient.
-            </SheetDescription>
-          </SheetHeader>
-
-          <div className="space-y-6">
-            <div className="bg-muted p-4 rounded-lg border flex justify-between items-center">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                  Patient
-                </p>
-                <p className="font-bold">
-                  {activePatient?.firstName} {activePatient?.lastName}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                  MR No
-                </p>
-                <p className="font-mono font-medium">
-                  {activePatient?.mrNumber}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Label>Level of Care (Ward Type)</Label>
-              <Select
-                value={selectedType}
-                onValueChange={(val) => {
-                  setSelectedType(val);
-                  setSelectedRoom(null);
-                }}
-              >
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select Category..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {roomTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.toUpperCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {selectedType && (
-              <div className="space-y-3 border-t pt-4">
-                <Label>Available {selectedType.toUpperCase()} Beds</Label>
-                {roomsToShowForAdmission.length === 0 ? (
-                  <p className="text-sm text-destructive font-medium p-3 bg-destructive/10 rounded border border-destructive/20">
-                    No available beds in this category.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-2 gap-3">
-                    {roomsToShowForAdmission.map((room) => (
-                      <div
-                        key={room.id}
-                        onClick={() => setSelectedRoom(room)}
-                        className={`cursor-pointer border-2 rounded-xl p-4 text-center transition-all ${
-                          selectedRoom?.id === room.id
-                            ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                            : "bg-card border-border hover:border-primary/50"
-                        }`}
-                      >
-                        <p className="font-bold font-heading text-lg">
-                          {room.roomNumber}
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Rs {Number(room.price).toLocaleString()}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          <SheetFooter className="mt-auto pt-4 border-t border-border/50">
-            <Button
-              className="w-full gap-2 shadow-md"
-              disabled={!selectedRoom}
-              onClick={handleConfirmAdmission}
-            >
-              {selectedRoom
-                ? `Confirm Admission to ${selectedRoom.roomNumber}`
-                : "Select a bed to continue"}
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+      <RoomBookingSheet
+        open={isAdmitSheetOpen}
+        onOpenChange={setIsAdmitSheetOpen}
+        activePatient={activePatient}
+      />
 
       {/* --- SHEET: DISCHARGE --- */}
-      <Sheet open={isManageSheetOpen} onOpenChange={setIsManageSheetOpen}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader className="mb-6">
-            <SheetTitle className="font-heading text-2xl flex items-center gap-2">
-              Manage Occupancy
-            </SheetTitle>
-            <SheetDescription>
-              Room {manageRoom?.roomNumber} -{" "}
-              {manageRoom?.roomType.toUpperCase()}
-            </SheetDescription>
-          </SheetHeader>
-
-          <div className="space-y-6">
-            <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg space-y-1">
-              <Label className="text-primary">Current Occupant</Label>
-              <p className="font-bold font-heading text-xl">
-                {manageRoom?.currentPatientName || "Unknown"}
-              </p>
-              <p className="text-sm font-mono text-muted-foreground">
-                {manageRoom?.currentPatientMrNo || "No MR found"}
-              </p>
-            </div>
-
-            <div className="space-y-4 pt-6 border-t mt-auto">
-              <Button
-                variant="destructive"
-                className="w-full gap-2"
-                onClick={handleDischargePatient}
-              >
-                <IconDoorExit size={18} />
-                Discharge Patient & Clear Bed
-              </Button>
-              <p className="text-xs text-center text-muted-foreground">
-                This will finalize current billing cycles and mark the room for
-                cleaning.
-              </p>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <RoomDischargingSheet
+        open={isManageSheetOpen}
+        onOpenChange={setIsManageSheetOpen}
+      />
     </div>
   );
 }

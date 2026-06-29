@@ -1,3 +1,4 @@
+
 export interface Patient {
   id: string;
   mrNumber: string;
@@ -32,6 +33,7 @@ export interface Doctor {
   doctorName: string;
   specialization: string;
   isAvailable: boolean;
+  timings?: string
 }
 
 export interface CartItem {
@@ -41,5 +43,6 @@ export interface CartItem {
   typeName: string;
   doctorId?: string;
   doctorName?: string;
+  timingId?: string;
   price: number;
 }

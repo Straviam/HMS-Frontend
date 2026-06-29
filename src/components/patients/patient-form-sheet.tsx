@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +41,35 @@ export function PatientFormSheet() {
     address: patient?.address || "",
   });
 
+  useEffect(() => {
+    if (patient && mode === "update") {
+      setFormData({
+        firstName: patient.firstName || "",
+        lastName: patient.lastName || "",
+        phone: patient.phone || "",
+        cnic: patient.cnic || "",
+        dateOfBirth: patient.dateOfBirth
+          ? patient.dateOfBirth.split("T")[0]
+          : "",
+        gender: patient.gender || "",
+        bloodGroup: patient.bloodGroup || "",
+        address: patient.address || "",
+      });
+    } else {
+      // Optional: Reset form when switching to 'add' mode
+      setFormData({
+        firstName: "",
+        lastName: "",
+        phone: "",
+        cnic: "",
+        dateOfBirth: "",
+        gender: "",
+        bloodGroup: "",
+        address: "",
+      });
+    }
+  }, [patient, mode]);
+
   // Generic change handler for text inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -77,11 +106,19 @@ export function PatientFormSheet() {
           address: "",
         });
         closeSheet();
-        // Note: You may want to trigger a refresh of the search list in the parent here
-        // depending on how you handle re-fetching!
+        // TODO: handle re-fetching!
       } else if (mode === "update") {
-        // TODO: Implement your update endpoint (e.g., PATCH /api/v1/patients/:id)
-        toast.info("Update patient functionality pending API integration.");
+        const response = await fetch(
+          `http://localhost:4040/api/v1/patients/${patient.id}`,
+          {
+            ...getApiOptions,
+            method: "PATCH",
+            body: JSON.stringify({ patient }),
+          },
+        );
+        // TODO: backend needs to fix this update endpoint
+        if (!response.ok) throw new Error("Failed to update patient.");
+        toast.success("Patient updated successfully!");
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred while saving.");

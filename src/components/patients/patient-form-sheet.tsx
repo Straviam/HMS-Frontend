@@ -109,14 +109,13 @@ export function PatientFormSheet() {
         // TODO: handle re-fetching!
       } else if (mode === "update") {
         const response = await fetch(
-          `http://localhost:4040/api/v1/patients/${patient.id}`,
+          `http://localhost:4040/api/v1/patients/${patient!.id}`,
           {
             ...getApiOptions,
             method: "PATCH",
-            body: JSON.stringify({ patient }),
+            body: JSON.stringify({ formData }),
           },
         );
-        // TODO: backend needs to fix this update endpoint
         if (!response.ok) throw new Error("Failed to update patient.");
         toast.success("Patient updated successfully!");
       }

@@ -78,23 +78,16 @@ export function AssignServiceSheet() {
   // --- Derived Data ---
   const activeType = serviceTypes.find((t) => t.id === selectedTypeId);
   const activeService = allServices.find((s) => s.id === selectedServiceId);
-  const availableServices = allServices.filter(
-    (s) => s.serviceTypeId === selectedTypeId,
-  );
+  const availableServices = allServices.filter( (s) => s.serviceTypeId === selectedTypeId, );
   const requiresDoctor = activeType?.doctorInvolvement === "YES";
-  const relevantDoctors = availableDoctors.filter((doc) => {
-    if (!activeType) return true;
-    return doc.specialization === activeService?.serviceName;
-  });
-
+  const relevantDoctors = availableDoctors.filter((doc) => { if (!activeType) return true; return doc.specialization === activeService?.serviceName; });
   const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
   const numericDiscount = Number(discount) || 0;
   const finalTotal = Math.max(0, cartTotal - numericDiscount);
-
   // Grouping Logic for Departmental Receipts
   const groupedCartByDepartment = cart.reduce((acc, item) => {
-    const deptName = item.typeName || "General";
-    if (!acc[deptName]) acc[deptName] = [];
+  const deptName = item.typeName || "General";
+  if (!acc[deptName]) acc[deptName] = [];
     acc[deptName].push(item);
     return acc;
   }, {} as Record<string, CartItem[]>);
@@ -125,13 +118,10 @@ export function AssignServiceSheet() {
           doctorId: newItem.doctorId || null,
           timingId: newItem.timingId || null,
         };
-
         const response = await fetch(
           `http://localhost:4040/api/v1/invoices/${invoiceId}/addItem`,
           {
-            ...postApiOptions,
-            method: "POST",
-            body: JSON.stringify({ items: [formattedItems] }),
+            ...postApiOptions, method: "POST", body: JSON.stringify({ items: [formattedItems] }),
           },
         );
 
@@ -147,7 +137,6 @@ export function AssignServiceSheet() {
     } else {
       setCart((prev) => [...prev, newItem]);
     }
-
     setSelectedServiceId("");
     setSelectedDoctorId("");
   };
@@ -166,9 +155,7 @@ export function AssignServiceSheet() {
       const response = await fetch(
         "http://localhost:4040/api/v1/invoices/reception/generate",
         {
-          ...postApiOptions,
-          method: "POST",
-          body: JSON.stringify({
+          ...postApiOptions, method: "POST", body: JSON.stringify({
             patientId: patient.id,
             items: formattedItems,
           }),
@@ -258,12 +245,8 @@ export function AssignServiceSheet() {
         </SheetHeader>
 
         <div className="space-y-6 flex-1">
-          <div className="bg-slate-100 p-3 text-sm rounded">
-            Assigning to:{" "}
-            <strong>
-              {patient?.firstName} {patient?.lastName}
-            </strong>{" "}
-            ({patient?.mrNumber})
+          <div className="bg-slate-100 p-3 text-sm rounded"> Assigning to:{" "}
+            <strong> {patient?.firstName} {patient?.lastName} </strong>{" "} ({patient?.mrNumber})
           </div>
 
           {/* ADD SERVICES FORM */}
@@ -287,9 +270,7 @@ export function AssignServiceSheet() {
                     <SelectValue placeholder="Select Category..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {serviceTypes.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
+                    {serviceTypes.map((t) => ( <SelectItem key={t.id} value={t.id}> {t.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -307,9 +288,7 @@ export function AssignServiceSheet() {
                     <SelectValue placeholder="Select Service..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableServices.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.serviceName}
+                    {availableServices.map((s) => ( <SelectItem key={s.id} value={s.id}> {s.serviceName}
                       </SelectItem>
                     ))}
                   </SelectContent>

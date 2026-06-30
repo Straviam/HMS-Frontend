@@ -113,7 +113,7 @@ export function PatientFormSheet() {
           {
             ...getApiOptions,
             method: "PATCH",
-            body: JSON.stringify({ formData }),
+            body: JSON.stringify(formData),
           },
         );
         if (!response.ok) throw new Error("Failed to update patient.");

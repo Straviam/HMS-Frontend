@@ -1,23 +1,11 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { IconDatabaseEdit, IconUserPlus } from "@tabler/icons-react";
 import { usePatientStore } from "../../store/patient-store";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "../ui/select";
 import { toast } from "sonner";
 import { getApiOptions } from "@/lib/utils";
 
@@ -31,18 +19,18 @@ export function PatientFormSheet() {
 
   // Local state to track form inputs
   const [formData, setFormData] = useState({
-    firstName: patient?.firstName || "",
-    lastName: patient?.lastName || "",
-    phone: patient?.phone || "",
-    cnic: patient?.cnic || "",
-    dateOfBirth: patient?.dateOfBirth ? patient.dateOfBirth.split("T")[0] : "",
-    gender: patient?.gender || "",
-    bloodGroup: patient?.bloodGroup || "",
-    address: patient?.address || "",
-  });
+        firstName: patient?.firstName || "",
+        lastName: patient?.lastName || "",
+        phone: patient?.phone || "",
+        cnic: patient?.cnic || "",
+        dateOfBirth: patient?.dateOfBirth
+          ? patient?.dateOfBirth.split("T")[0]
+          : "",
+        gender: patient?.gender || "",
+        bloodGroup: patient?.bloodGroup || "",
+        address: patient?.address || "",});
 
-  useEffect(() => {
-    if (patient && mode === "update") {
+  useEffect(() => { if (patient && mode === "update") {
       setFormData({
         firstName: patient.firstName || "",
         lastName: patient.lastName || "",
@@ -56,7 +44,7 @@ export function PatientFormSheet() {
         address: patient.address || "",
       });
     } else {
-      // Optional: Reset form when switching to 'add' mode
+      // Reset form when switching to 'add' mode
       setFormData({
         firstName: "",
         lastName: "",
@@ -109,13 +97,26 @@ export function PatientFormSheet() {
         // TODO: handle re-fetching!
       } else if (mode === "update") {
         const response = await fetch(
-          `http://localhost:4040/api/v1/patients/${patient!.id}`,
+
+          `http://localhost:4040/api/v1/patients/${patient?.id}`,
+
           {
             ...getApiOptions,
             method: "PATCH",
             body: JSON.stringify(formData),
           },
         );
+        setFormData({
+          firstName: "",
+          lastName: "",
+          phone: "",
+          cnic: "",
+          dateOfBirth: "",
+          gender: "",
+          bloodGroup: "",
+          address: "",
+        });
+        closeSheet();
         if (!response.ok) throw new Error("Failed to update patient.");
         toast.success("Patient updated successfully!");
       }
@@ -143,7 +144,6 @@ export function PatientFormSheet() {
           </SheetTitle>
         </SheetHeader>
 
-        {/* Changed to a <form> and mapped to state. The 'key' forces a full reset when switching patients */}
         <form
           key={patient?.id || "new"}
           onSubmit={handleSubmit}

@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, } from "@/components/ui/sheet";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { IconFileSignal, IconPlus, IconReceipt } from "@tabler/icons-react";
+import { IconFileSignal, IconPlus, IconReceipt, IconPrinter, IconCheck } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { getApiOptions, patchApiOptions, postApiOptions } from "@/lib/utils";
 import type { ServiceType, Service, Doctor, CartItem } from "../../types/types";
@@ -19,7 +19,7 @@ export function AssignServiceSheet() {
   // Master Data State
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [allServices, setAllServices] = useState<Service[]>([]);
-  const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
+  const [availableDoctors, setAvailableDoctors] = useState<Doctor[]>([]);
 
   // Form Selection State
   const [selectedTypeId, setSelectedTypeId] = useState<string>("");
@@ -36,7 +36,7 @@ export function AssignServiceSheet() {
   const [paymentMethod, setPaymentMethod] = useState<string>("CASH");
   const [discount, setDiscount] = useState<number | string>(0);
 
-  // Fetch Master Data (only runs when the sheet opens for the first time)
+  // Fetch Master Data
   useEffect(() => {
     if (!isOpen) return;
 
@@ -45,7 +45,7 @@ export function AssignServiceSheet() {
         const [typesRes, servRes, docsRes] = await Promise.all([
           fetch("http://localhost:4040/api/v1/services/types", getApiOptions),
           fetch("http://localhost:4040/api/v1/services", getApiOptions),
-          fetch("http://localhost:4040/api/v1/doctors", getApiOptions),
+          fetch("http://localhost:4040/api/v1/doctors/available", getApiOptions),
         ]);
         const typesData = await typesRes.json();
         const servData = await servRes.json();
@@ -53,7 +53,7 @@ export function AssignServiceSheet() {
 
         setServiceTypes(typesData.data || []);
         setAllServices(servData.data || []);
-        setAllDoctors(docsData.data || []);
+        setAvailableDoctors(docsData.data || []);
       } catch (error) {
         toast.error("Failed to load service configuration.");
       }
@@ -71,28 +71,40 @@ export function AssignServiceSheet() {
       setInvoiceId(null);
       setInvoiceState("drafting");
       setPaymentMethod("CASH");
-      setDiscount(0);
+      setDiscount("");
     }
   }, [isOpen]);
 
-  // Derived Data
+  // --- Derived Data ---
   const activeType = serviceTypes.find((t) => t.id === selectedTypeId);
   const activeService = allServices.find((s) => s.id === selectedServiceId);
   const availableServices = allServices.filter(
     (s) => s.serviceTypeId === selectedTypeId,
   );
   const requiresDoctor = activeType?.doctorInvolvement === "YES";
+  const relevantDoctors = availableDoctors.filter((doc) => {
+    if (!activeType) return true;
+    return doc.specialization === activeService?.serviceName;
+  });
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
   const numericDiscount = Number(discount) || 0;
   const finalTotal = Math.max(0, cartTotal - numericDiscount);
+
+  // Grouping Logic for Departmental Receipts
+  const groupedCartByDepartment = cart.reduce((acc, item) => {
+    const deptName = item.typeName || "General";
+    if (!acc[deptName]) acc[deptName] = [];
+    acc[deptName].push(item);
+    return acc;
+  }, {} as Record<string, CartItem[]>);
 
   // --- ACTIONS ---
   const handleAddToCart = async () => {
     if (!activeType || !activeService || (requiresDoctor && !selectedDoctorId))
       return;
 
-    const doctor = allDoctors.find((d) => d.id === selectedDoctorId);
+    const doctor = availableDoctors.find((d) => d.id === selectedDoctorId);
 
     const newItem: CartItem = {
       serviceId: activeService.id,
@@ -218,12 +230,21 @@ export function AssignServiceSheet() {
 
       setInvoiceState("paid");
       toast.success("Payment processed successfully.");
-      setTimeout(() => closeSheet(), 2000);
     } catch (err) {
       toast.error("Failed to process payment.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const printMasterReceipt = () => {
+    console.log("Printing Master Receipt for Invoice:", invoiceId, cart);
+    toast("Master Receipt sent to printer.");
+  };
+
+  const printDepartmentReceipt = (deptName: string, items: CartItem[]) => {
+    console.log(`Printing Receipt for ${deptName}:`, items);
+    toast(`${deptName} Receipt sent to printer.`);
   };
 
   return (
@@ -244,6 +265,8 @@ export function AssignServiceSheet() {
             </strong>{" "}
             ({patient?.mrNumber})
           </div>
+
+          {/* ADD SERVICES FORM */}
           {invoiceState === "drafting" || invoiceState === "generated" ? (
             <div className="space-y-4 p-4 border rounded-lg bg-slate-50/50">
               <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
@@ -257,6 +280,7 @@ export function AssignServiceSheet() {
                   onValueChange={(val) => {
                     setSelectedTypeId(val);
                     setSelectedServiceId("");
+                    setSelectedDoctorId(""); // Reset doctor selection when category changes
                   }}
                 >
                   <SelectTrigger>
@@ -296,14 +320,21 @@ export function AssignServiceSheet() {
                 <div className="space-y-2">
                   <Label>Assign Doctor</Label>
                   <Select
+                    disabled={!selectedTypeId || relevantDoctors.length === 0}
                     value={selectedDoctorId}
                     onValueChange={setSelectedDoctorId}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Doctor..." />
+                      <SelectValue
+                        placeholder={
+                          relevantDoctors.length === 0
+                            ? "No doctors available for this service"
+                            : "Select Doctor..."
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {allDoctors.map((d) => (
+                      {relevantDoctors.map((d) => (
                         <SelectItem key={d.id} value={d.id}>
                           {d.doctorName} ({d.specialization})
                         </SelectItem>
@@ -329,7 +360,8 @@ export function AssignServiceSheet() {
             </div>
           ) : null}
 
-          {cart.length > 0 && (
+          {/* CURRENT CART / INVOICE PREVIEW */}
+          {cart.length > 0 && invoiceState !== "paid" && (
             <div className="space-y-3">
               <div className="flex justify-between items-center border-b pb-2">
                 <h3 className="font-semibold text-lg flex items-center gap-2">
@@ -368,7 +400,7 @@ export function AssignServiceSheet() {
             </div>
           )}
 
-          {/* Payment Options - Only shown when finalizing */}
+          {/* PAYMENT DETAILS */}
           {invoiceState === "finalized" && (
             <div className="space-y-4 p-4 border rounded-lg bg-slate-50/50 mt-4">
               <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
@@ -417,6 +449,60 @@ export function AssignServiceSheet() {
               </div>
             </div>
           )}
+
+          {/* PRINT RECEIPTS DASHBOARD */}
+          {invoiceState === "paid" && (
+            <div className="space-y-6">
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg flex items-center gap-3">
+                <div className="bg-emerald-100 p-2 rounded-full">
+                  <IconCheck size={24} className="text-emerald-600" />
+                </div>
+                <div>
+                  <p className="font-bold">Payment Successful</p>
+                  <p className="text-sm">Invoice #{invoiceId} has been cleared.</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-bold text-muted-foreground uppercase text-xs tracking-wider">
+                  Print Master Receipt
+                </h3>
+                <Button
+                  className="w-full gap-2 py-6 bg-slate-900 text-white"
+                  onClick={printMasterReceipt}
+                >
+                  <IconPrinter size={20} />
+                  Print Complete Invoice
+                </Button>
+              </div>
+
+              <div className="space-y-3 pt-4 border-t">
+                <h3 className="font-bold text-muted-foreground uppercase text-xs tracking-wider">
+                  Print Department Receipts
+                </h3>
+                <div className="grid grid-cols-1 gap-2">
+                  {Object.entries(groupedCartByDepartment).map(([deptName, items]) => (
+                    <Button
+                      key={deptName}
+                      variant="outline"
+                      className="w-full justify-start gap-3 h-auto py-3"
+                      onClick={() => printDepartmentReceipt(deptName, items)}
+                    >
+                      <div className="bg-primary/10 p-2 rounded text-primary">
+                        <IconPrinter size={16} />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold">{deptName} Receipt</p>
+                        <p className="text-xs text-muted-foreground">
+                          {items.length} service{items.length > 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <SheetFooter className="mt-6 pt-4 border-t">
@@ -449,8 +535,8 @@ export function AssignServiceSheet() {
             </Button>
           )}
           {invoiceState === "paid" && (
-            <Button className="w-full" variant="outline" onClick={closeSheet}>
-              Done & Close
+            <Button className="w-full" variant="ghost" onClick={closeSheet}>
+              Close Window
             </Button>
           )}
         </SheetFooter>
@@ -458,8 +544,3 @@ export function AssignServiceSheet() {
     </Sheet>
   );
 }
-
-// TODO: will make a separate component of sheet
-// TODO: on completing the transaction of one patient, will wipe out all of his API calls from browser
-// TODO: will configure a loader in search
-// TODO: will design a flow so that after adding patient receptionist ca assign service to him

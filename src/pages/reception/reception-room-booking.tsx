@@ -1,230 +1,131 @@
-import { useState, useEffect } from "react";
-import { Link, useLoaderData } from "react-router";
-import {
-  IconBed,
-  IconActivity,
-  IconSearch,
-  IconPlus,
-  IconTool,
-} from "@tabler/icons-react";
-import { Card, CardContent,  } from "@/components/ui/card";
+import { useState, useEffect, useMemo } from "react";
+import { Link, useLoaderData, useRevalidator } from "react-router";
+import { IconSearch, IconPlus, IconLoader2, IconStethoscope } from "@tabler/icons-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getApiOptions } from "@/lib/utils";
-import { RoomBookingSheet } from "@/components/reception/room-booking-sheet";
-import { RoomDischargingSheet } from "@/components/reception/room-dicharging-sheet";
 import { LiveBedBoard } from "@/components/reception/bed-board";
+import { useRoomStore, type Room, type Patient } from "@/store/room-store";
+import { getApiOptions } from "@/lib/utils";
+import { AssignServiceSheet } from "@/components/reception/assign-service-to-admitted-patient-sheet";
+import { RoomBookingSheet } from "@/components/reception/room-booking-sheet";
 
-// --- TYPES (Exactly matching your API payload) ---
-export type RoomStatus =
-  | "AVAILABLE"
-  | "OCCUPIED"
-  | "CLEANING"
-  | "UNDER_MAINTENANCE";
-
-export interface Room {
-  id: string;
-  roomNumber: string;
-  roomType: string;
-  price: string;
-  status: RoomStatus;
-  lastCleanedAt: string | null;
-  isActive: boolean;
-  createdAt: string;
-  // Note: If backend adds current occupant details later, add them here
-  currentPatientName?: string;
-  currentPatientMrNo?: string;
-}
-
-export interface Patient {
-  id: string;
-  mrNumber: string;
-  firstName: string;
-  lastName: string;
-  cnic: string;
-  gender: string;
-  dateOfBirth: string;
-  phone: string;
-  bloodGroup: string;
-  address: string;
-  createdAt: string;
-}
-
-interface LoaderData {
-  rooms: Room[];
-  stats: {
-    total: number;
-    occupied: number;
-    maintenance: number;
-    cleaning: number;
-    available: number;
-  };
-  patients: Patient[];
-}
-
-// --- LOADER ---
-export async function ReceptionBedLoader(): Promise<LoaderData> {
+// --- LOADER (Merging your two new endpoints) ---
+export async function ReceptionBedLoader() {
   try {
-    const [roomRes, statsRes, patientRes] = await Promise.all([
-      fetch("http://localhost:4040/api/v1/rooms", getApiOptions),
+    const [statsRes, roomsRes, bookingsRes] = await Promise.all([
       fetch("http://localhost:4040/api/v1/rooms/stats", getApiOptions),
-      fetch("http://localhost:4040/api/v1/patients", getApiOptions),
+      fetch("http://localhost:4040/api/v1/rooms/active", getApiOptions), // NEW ENDPOINT 1
+      fetch("http://localhost:4040/api/v1/roomBooking/active", getApiOptions), // NEW ENDPOINT 2
     ]);
 
-    if (!roomRes.ok) throw new Error("Failed to fetch rooms list.");
-    if (!statsRes.ok) throw new Error("Failed to fetch hospital stats.");
-    if (!patientRes.ok) throw new Error("Failed to fetch patients list.");
-
-    const roomData = await roomRes.json();
     const statsData = await statsRes.json();
-    const patientData = await patientRes.json();
+    const roomsData = await roomsRes.json();
+    const bookingsData = await bookingsRes.json();
 
-    return {
-      rooms: roomData.data,
-      stats: statsData.data,
-      patients: patientData.data.patients, // Extracting the array directly
-    };
-  } catch (error) {
-    console.error(
-      "Loader Exception:",
-      error instanceof Error ? error.message : "Unknown error",
-    );
-    throw new Response("Failed to load Reception data from server.", {
-      status: 500,
-      statusText:
-        error instanceof Error ? error.message : "Internal Server Error",
+    // Merge the active bookings into the physical rooms array
+    const mergedRooms = roomsData.data.map((room: Room) => {
+      const activeStay = bookingsData.data.find((b: any) => b.room.id === room.id);
+      if (activeStay) {
+        return {
+          ...room,
+          status: "OCCUPIED",
+          currentPatientName: `${activeStay.patient.firstName} ${activeStay.patient.lastName}`,
+          currentPatientMrNo: activeStay.patient.mrNumber,
+          currentInvoiceId: activeStay.booking.invoiceId,
+        };
+      }
+      return room;
     });
+
+    return { stats: statsData.data, rooms: mergedRooms };
+  } catch (error) {
+    throw new Error("Failed to load Reception data from server.");
   }
 }
 
 export default function ReceptionRoomBooking() {
-  const { rooms, stats, patients } = useLoaderData() as LoaderData;
+  const { rooms: loaderRooms, stats } = useLoaderData() as any;
+  const { revalidate } = useRevalidator();
+  const { rooms, setRooms } = useRoomStore();
 
-  // --- STATE ---
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<Patient[]>([]);
-  const [hasSearched, setHasSearched] = useState<boolean>(false);
-
-  // Sheet State
-  const [isAdmitSheetOpen, setIsAdmitSheetOpen] = useState<boolean>(false);
-  const [activePatient, setActivePatient] = useState<Patient | null>(null);
-  const [isManageSheetOpen, setIsManageSheetOpen] = useState<boolean>(false);
-
-
-  // --- SEARCH LOGIC ---
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      setSearchResults([]);
-      setHasSearched(false);
+    setRooms(loaderRooms);
+  }, [loaderRooms, setRooms]);
+
+  // Tab 1 States: Admissions (Global Search)
+  const [admissionSearch, setAdmissionSearch] = useState("");
+  const [admissionResults, setAdmissionResults] = useState<Patient[]>([]);
+  const [isSearchingAdmissions, setIsSearchingAdmissions] = useState(false);
+  const [hasSearchedAdmissions, setHasSearchedAdmissions] = useState(false);
+  const [isAdmitSheetOpen, setIsAdmitSheetOpen] = useState(false);
+  const [activePatient, setActivePatient] = useState<Patient | null>(null);
+
+  // Tab 2 States: Services (Local Search)
+  const [serviceSearch, setServiceSearch] = useState("");
+  const [isServiceSheetOpen, setIsServiceSheetOpen] = useState(false);
+  const [selectedServiceRoom, setSelectedServiceRoom] = useState<Room | null>(null);
+
+  // Tab 3 States: Bed Board (Local Search)
+  const [bedBoardSearch, setBedBoardSearch] = useState("");
+
+  // --- TAB 1 SEARCH LOGIC (API) ---
+  useEffect(() => {
+    if (!admissionSearch.trim()) {
+      setAdmissionResults([]);
+      setHasSearchedAdmissions(false);
+      setIsSearchingAdmissions(false);
       return;
     }
-
-    const delayDebounceFn = setTimeout(() => {
-      setHasSearched(true);
-      const normalizedTerm = searchTerm.toLowerCase();
-
-      const results = patients.filter(
-        (p) =>
-          p.phone.includes(searchTerm) ||
-          p.cnic.includes(searchTerm) ||
-          p.mrNumber.toLowerCase().includes(normalizedTerm),
-      );
-      setSearchResults(results);
+    const delayFn = setTimeout(async () => {
+      setHasSearchedAdmissions(true);
+      setIsSearchingAdmissions(true);
+      try {
+        const res = await fetch(`http://localhost:4040/api/v1/patients?search=${encodeURIComponent(admissionSearch)}`, getApiOptions);
+        if (res.ok) {
+          const data = await res.json();
+          setAdmissionResults(data.data.patients || []);
+        }
+      } finally {
+        setIsSearchingAdmissions(false);
+      }
     }, 500);
+    return () => clearTimeout(delayFn);
+  }, [admissionSearch]);
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, patients]);
-
-  // --- HANDLERS ---
-  const openAdmissionSheet = (patient: Patient) => {
-    setActivePatient(patient);
-    setIsAdmitSheetOpen(true);
-  };
+  // --- TAB 2 SEARCH LOGIC (LOCAL ZUSTAND) ---
+  const filteredInRoomPatients = useMemo(() => {
+    const occupied = rooms.filter(r => r.status === "OCCUPIED");
+    if (!serviceSearch) return occupied;
+    const lower = serviceSearch.toLowerCase();
+    return occupied.filter(r =>
+      r.currentPatientName?.toLowerCase().includes(lower) ||
+      r.currentPatientMrNo?.toLowerCase().includes(lower) ||
+      r.roomNumber.toLowerCase().includes(lower)
+    );
+  }, [rooms, serviceSearch]);
 
   return (
     <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">
-            Reception & Admissions
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Manage patient admissions, search records, and assign beds.
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-heading font-bold tracking-tight">Reception & Operations</h1>
+        <p className="text-muted-foreground text-sm">Manage admissions, bedside services, and room availability.</p>
       </div>
 
-      {/* KPI Dashboard  */}
+      {/* KPI Dashboard */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
-          <CardContent className="p-6 flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Available Beds
-              </span>
-              <IconBed size={20} className="text-primary/70" />
-            </div>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-3xl font-heading font-bold text-primary">
-                {stats.available}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                / {stats.total} Total
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardContent className="p-6 flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Occupied Beds
-              </span>
-              <IconActivity size={20} className="text-muted-foreground/50" />
-            </div>
-            <span className="text-3xl font-heading font-bold">
-              {stats.occupied}
-            </span>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardContent className="p-6 flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Needs Cleaning
-              </span>
-              <IconActivity size={20} className="text-amber-500/70" />
-            </div>
-            <span className="text-3xl font-heading font-bold">
-              {stats.cleaning}
-            </span>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardContent className="p-6 flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Maintenance
-              </span>
-              <IconTool size={20} className="text-destructive/70" />
-            </div>
-            <span className="text-3xl font-heading font-bold">
-              {stats.maintenance}
-            </span>
-          </CardContent>
-        </Card>
+        <Card className="shadow-sm"><CardContent className="p-6"><div className="text-sm text-muted-foreground">Available</div><div className="text-3xl font-bold text-primary">{stats.available}</div></CardContent></Card>
+        <Card className="shadow-sm"><CardContent className="p-6"><div className="text-sm text-muted-foreground">Occupied</div><div className="text-3xl font-bold">{stats.occupied}</div></CardContent></Card>
+        <Card className="shadow-sm"><CardContent className="p-6"><div className="text-sm text-muted-foreground">Cleaning</div><div className="text-3xl font-bold">{stats.cleaning}</div></CardContent></Card>
+        <Card className="shadow-sm"><CardContent className="p-6"><div className="text-sm text-muted-foreground">Maintenance</div><div className="text-3xl font-bold">{stats.maintenance}</div></CardContent></Card>
       </div>
 
-      {/* Main Content Tabs */}
       <Tabs defaultValue="admissions" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3 mb-6">
           <TabsTrigger value="admissions">New Admission</TabsTrigger>
+          <TabsTrigger value="services">In-Room Services</TabsTrigger>
           <TabsTrigger value="bedboard">Live Bed Board</TabsTrigger>
         </TabsList>
 
@@ -232,56 +133,31 @@ export default function ReceptionRoomBooking() {
         <TabsContent value="admissions" className="space-y-6">
           <Card className="border-0 shadow-sm bg-muted/30">
             <CardContent className="p-6">
-              <div className="space-y-3 max-w-2xl">
-                <Label className="text-lg font-heading font-semibold">
-                  Patient Search
-                </Label>
-                <div className="relative">
-                  <IconSearch className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    placeholder="Scan or type MR No, Phone, or CNIC..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-12 text-base bg-background shadow-sm"
-                  />
-                </div>
+              <Label className="text-lg font-heading font-semibold">Patient Database Search</Label>
+              <div className="relative mt-2 max-w-2xl">
+                <IconSearch className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input placeholder="Scan or type MR No, Phone, or Name..." value={admissionSearch} onChange={(e) => setAdmissionSearch(e.target.value)} className="pl-10 h-12" />
+                {isSearchingAdmissions && <IconLoader2 className="absolute right-3 top-3 h-5 w-5 text-primary animate-spin" />}
               </div>
             </CardContent>
           </Card>
 
-          {/* RESULTS AREA */}
-          {hasSearched && (
+          {hasSearchedAdmissions && (
             <div className="border p-4 rounded-md space-y-4">
               <h2 className="font-bold">Results:</h2>
-
-              {searchResults.length === 0 ? (
+              {admissionResults.length === 0 && !isSearchingAdmissions ? (
                 <div className="space-y-4">
                   <p>No patient found.</p>
-                  <Button asChild className="gap-2">
-                    <Link to="/receptionist" />
-                    <IconPlus size={18} />
-                    Add New Patient
-                  </Button>
+                  <Button asChild className="gap-2"><Link to="/receptionist/patients/new" /><IconPlus size={18} /> Add New Patient</Button>
                 </div>
               ) : (
-                searchResults.map((patient) => (
-                  <div
-                    key={patient.mrNumber}
-                    className="border p-4 flex justify-between items-center bg-slate-50"
-                  >
+                admissionResults.map((patient) => (
+                  <div key={patient.mrNumber} className="border p-4 flex justify-between items-center bg-slate-50 rounded">
                     <div>
-                      <p className="font-bold">
-                        {patient.firstName} {patient.lastName}
-                      </p>
-                      <p className="text-sm">
-                        MR: {patient.mrNumber} | Phone: {patient.phone}
-                      </p>
+                      <p className="font-bold">{patient.firstName} {patient.lastName}</p>
+                      <p className="text-sm text-muted-foreground">MR: {patient.mrNumber} | Phone: {patient.phone}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button onClick={() => openAdmissionSheet(patient)}>
-                        Assign Room
-                      </Button>
-                    </div>
+                    <Button onClick={() => { setActivePatient(patient); setIsAdmitSheetOpen(true); }}>Assign Room</Button>
                   </div>
                 ))
               )}
@@ -289,23 +165,53 @@ export default function ReceptionRoomBooking() {
           )}
         </TabsContent>
 
-        {/* --- TAB 2: BED BOARD (Mirrored from Admin Panel) --- */}
+        {/* --- TAB 2: IN-ROOM SERVICES --- */}
+        <TabsContent value="services" className="space-y-6">
+           <Card className="border-0 shadow-sm bg-muted/30">
+            <CardContent className="p-6">
+              <Label className="text-lg font-heading font-semibold">Search Admitted Patients</Label>
+              <div className="relative mt-2 max-w-2xl">
+                <IconSearch className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input placeholder="Search by Room No, Name, or MR No..." value={serviceSearch} onChange={(e) => setServiceSearch(e.target.value)} className="pl-10 h-12" />
+              </div>
+            </CardContent>
+          </Card>
 
-        <LiveBedBoard rooms={rooms} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredInRoomPatients.length === 0 ? (
+               <p className="text-muted-foreground p-4">No admitted patients match your search.</p>
+            ) : (
+              filteredInRoomPatients.map(room => (
+                <Card key={room.id} className="shadow-sm">
+                  <CardContent className="p-5 flex justify-between items-center">
+                     <div>
+                       <h3 className="font-bold font-heading">{room.currentPatientName}</h3>
+                       <p className="text-sm text-muted-foreground">Room {room.roomNumber} ({room.roomType.toUpperCase()})</p>
+                       <p className="text-xs font-mono mt-1 bg-muted inline-block px-1 rounded border">Inv: {room.currentInvoiceId}</p>
+                     </div>
+                     <Button variant="secondary" className="gap-2" onClick={() => { setSelectedServiceRoom(room); setIsServiceSheetOpen(true); }}>
+                       <IconStethoscope size={16} /> Add Services
+                     </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        {/* --- TAB 3: BED BOARD --- */}
+        <TabsContent value="bedboard" className="space-y-4">
+          <div className="relative max-w-md mb-4">
+            <IconSearch className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Filter beds..." value={bedBoardSearch} onChange={(e) => setBedBoardSearch(e.target.value)} className="pl-9 h-10" />
+          </div>
+          <LiveBedBoard rooms={rooms} searchTerm={bedBoardSearch} onSuccessRevalidate={revalidate} />
+        </TabsContent>
       </Tabs>
 
-      {/* --- SHEET: ADMISSION --- */}
-      <RoomBookingSheet
-        open={isAdmitSheetOpen}
-        onOpenChange={setIsAdmitSheetOpen}
-        activePatient={activePatient}
-      />
-
-      {/* --- SHEET: DISCHARGE --- */}
-      <RoomDischargingSheet
-        open={isManageSheetOpen}
-        onOpenChange={setIsManageSheetOpen}
-      />
+      {/* --- SHEETS --- */}
+      <RoomBookingSheet open={isAdmitSheetOpen} onOpenChange={setIsAdmitSheetOpen} activePatient={activePatient} onSuccessRevalidate={revalidate} />
+      <AssignServiceSheet open={isServiceSheetOpen} onOpenChange={setIsServiceSheetOpen} room={selectedServiceRoom} />
     </div>
   );
 }

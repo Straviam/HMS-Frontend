@@ -116,7 +116,7 @@ export default function ReceptionRoomBooking() {
 
       {/* KPI Dashboard */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm"><CardContent className="p-6"><div className="text-sm text-muted-foreground">Available</div><div className="text-3xl font-bold text-primary">{stats.available}</div></CardContent></Card>
+        <Card className="shadow-sm"><CardContent className="p-6"><div className="text-sm text-muted-foreground">Available</div> <span className="text-3xl font-bold text-primary">{stats.available}</span><span className="text-lg text-muted-foreground">/ {stats.total}</span></CardContent></Card>
         <Card className="shadow-sm"><CardContent className="p-6"><div className="text-sm text-muted-foreground">Occupied</div><div className="text-3xl font-bold">{stats.occupied}</div></CardContent></Card>
         <Card className="shadow-sm"><CardContent className="p-6"><div className="text-sm text-muted-foreground">Cleaning</div><div className="text-3xl font-bold">{stats.cleaning}</div></CardContent></Card>
         <Card className="shadow-sm"><CardContent className="p-6"><div className="text-sm text-muted-foreground">Maintenance</div><div className="text-3xl font-bold">{stats.maintenance}</div></CardContent></Card>

@@ -142,15 +142,16 @@ export function RoomDischargingSheet({ open, onOpenChange, manageRoom, onSuccess
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent className="sm:max-w-md overflow-y-auto">
+      <SheetContent className="sm:max-w-md overflow-y-auto p-5">
         {!finalReceiptData ? (
           <>
             <SheetHeader className="mb-6">
-              <SheetTitle className="font-heading text-2xl flex items-center gap-2">Manage Occupancy</SheetTitle>
+              <SheetTitle className="font-heading text-2xl flex items-center gap-2">
+                <IconDoorExit className="text-primary"/>Manage Occupancy</SheetTitle>
               <SheetDescription>Room {manageRoom?.roomNumber} - {manageRoom?.roomType?.toUpperCase()}</SheetDescription>
             </SheetHeader>
 
-            <div className="space-y-6">
+            <div className="space-y-6 ">
               <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg space-y-1">
                 <Label className="text-primary">Current Occupant</Label>
                 <p className="font-bold font-heading text-xl">{manageRoom?.currentPatientName || "Unknown"}</p>
@@ -160,7 +161,9 @@ export function RoomDischargingSheet({ open, onOpenChange, manageRoom, onSuccess
                 </div>
               </div>
 
-              <div className="space-y-4 pt-6 border-t mt-auto">
+
+              <SheetFooter className="pt-6 border-t mt-full">
+
                 <Button variant="destructive" className="w-full gap-2" disabled={isSubmitting} onClick={handleDischargePatient}>
                   {isSubmitting ? <IconLoader2 className="animate-spin" size={18} /> : <IconDoorExit size={18} />}
                   Discharge Patient & Finalize Bill
@@ -168,7 +171,8 @@ export function RoomDischargingSheet({ open, onOpenChange, manageRoom, onSuccess
                 <p className="text-xs text-center text-muted-foreground">
                   This will finalize current billing cycles, calculate room costs, and mark the room for cleaning.
                 </p>
-              </div>
+
+              </SheetFooter>
             </div>
           </>
         ) : (

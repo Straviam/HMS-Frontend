@@ -13,7 +13,9 @@ import AdminPatientsPage, { adminPatientLoader } from "./pages/admin/admin-patie
 import AdminTransactionsPage, { adminTransactionLoader } from "./pages/admin/admin-transaction-page";
 import AdminInvoicesPage, { adminInvoiceLoader } from "./pages/admin/admin-billing-page";
 import AdminFacilityPage, { adminFacilityLoader } from "./pages/admin/admin-facility-page";
-import PatientRegistry from "./pages/reception/reception-search-page";
+import PatientRegistry from "./pages/reception/reception-search-page-2";
+import RoomBooking, { ReceptionBedLoader } from "./pages/reception/reception-room-booking";
+import ReceptionRoomBooking from "./pages/reception/reception-room-booking";
 
 export const router = createBrowserRouter([
   {
@@ -72,6 +74,11 @@ export const router = createBrowserRouter([
         element: <ReceptionLayout />,
         children: [
           { index: true, element: <PatientRegistry /> },
+          {
+            path: "bookings",
+            element: <ReceptionRoomBooking />,
+            loader: ReceptionBedLoader,
+          },
         ]
       }
     ]

@@ -21,7 +21,14 @@ export const postApiOptions = {
   credentials: 'include', // for cookie httpOnly
 } as const;
 
+export const patchApiOptions = {
+  method: 'PATCH',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  credentials: 'include', // for cookie httpOnly
+} as const;
 
-// TODO: Make these Generic 
+// TODO: Make these Generic
 
 

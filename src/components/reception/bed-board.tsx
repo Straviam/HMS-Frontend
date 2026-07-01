@@ -56,17 +56,29 @@ export function LiveBedBoard({ rooms, searchTerm, onSuccessRevalidate }: LiveBed
                   <span className="text-muted-foreground text-xs uppercase">Rate</span>
                   <span className="font-mono font-medium">Rs {Number(room.price).toLocaleString()}/Day</span>
                 </div>
+               
                 {room.status === "OCCUPIED" && (
-                  <div className="border-t pt-3 mt-1 flex justify-between items-center">
-                    <div className="flex flex-col"><span className="font-semibold">{room.currentPatientName}</span><span className="text-xs text-muted-foreground">{room.currentPatientMrNo}</span></div>
-                    {room.currentInvoiceId && (
-                      <div className="flex items-center gap-2 bg-background border px-2 py-1 rounded cursor-pointer hover:bg-muted transition-colors" onClick={() => { navigator.clipboard.writeText(room.currentInvoiceId!); setCopiedId(room.currentInvoiceId!); toast.success("Invoice ID copied"); setTimeout(() => setCopiedId(null), 2000); }}>
-                        <span className="text-xs font-mono">{room.currentInvoiceId}</span>
-                        {copiedId === room.currentInvoiceId ? <IconCheck size={14} className="text-emerald-500" /> : <IconCopy size={14} className="text-muted-foreground" />}
-                      </div>
-                    )}
+                <div className="flex flex-col border-t pt-3 mt-1 ">
+                  <div className="flex items-center gap-2 ml-1">
+                    <span className="font-semibold">{room.currentPatientName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {room.currentPatientMrNo}
+                    </span>
                   </div>
-                )}
+
+                  {room.currentInvoiceId && (
+                    <div
+                      className="flex flex-col bg-background border p-2 rounded cursor-pointer hover:bg-muted transition-colors"
+                      onClick={() => {navigator.clipboard.writeText(room.currentInvoiceId!); setCopiedId(room.currentInvoiceId!); toast.success("Invoice ID copied"); setTimeout(() => setCopiedId(null), 2000); }} >
+                      <span className="text-sm">Copy Current Invoice ID</span>
+                      <div className="flex flex-row gap-4">
+                        <span className="text-xs font-mono">{room.currentInvoiceId}</span>
+                        {copiedId === room.currentInvoiceId ? (<IconCheck size={14} className="text-emerald-500" />) : (<IconCopy size={14} className="text-muted-foreground" />)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               </div>
             </CardContent>
             <CardFooter className="pt-0 border-t bg-card/50 px-6 py-3">

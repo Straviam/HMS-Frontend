@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLoaderData, useRevalidator } from "react-router";
-import { IconSearch, IconPlus, IconLoader2, IconStethoscope } from "@tabler/icons-react";
+import { IconSearch, IconPlus, IconLoader2, IconStethoscope, IconCheck, IconCopy } from "@tabler/icons-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { useRoomStore, type Room, type Patient } from "@/store/room-store";
 import { getApiOptions } from "@/lib/utils";
 import { AssignServiceSheet } from "@/components/reception/assign-service-to-admitted-patient-sheet";
 import { RoomBookingSheet } from "@/components/reception/room-booking-sheet";
+import { toast } from "sonner";
 
 // --- LOADER (Merging your two new endpoints) ---
 export async function ReceptionBedLoader() {
@@ -70,6 +71,7 @@ export default function ReceptionRoomBooking() {
 
   // Tab 3 States: Bed Board (Local Search)
   const [bedBoardSearch, setBedBoardSearch] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // --- TAB 1 SEARCH LOGIC (API) ---
   useEffect(() => {
@@ -185,9 +187,15 @@ export default function ReceptionRoomBooking() {
                 <Card key={room.id} className="shadow-sm">
                   <CardContent className="p-5 flex justify-between items-center">
                      <div>
-                       <h3 className="font-bold font-heading">{room.currentPatientName}</h3>
-                       <p className="text-sm text-muted-foreground">Room {room.roomNumber} ({room.roomType.toUpperCase()})</p>
-                       <p className="text-xs font-mono mt-1 bg-muted inline-block px-1 rounded border">Inv: {room.currentInvoiceId}</p>
+                       <h3 className="font-bold font-heading ml-1">{room.currentPatientName}</h3>
+                       <p className="text-sm text-muted-foreground ml-1">Room {room.roomNumber} ({room.roomType.toUpperCase()})</p>{room.currentInvoiceId && (
+                    <div
+                      className="flex flex-col bg-background border p-2 rounded cursor-pointer hover:bg-muted transition-colors"
+                      onClick={() => {navigator.clipboard.writeText(room.currentInvoiceId!); setCopiedId(room.currentInvoiceId!); toast.success("Invoice ID copied"); setTimeout(() => setCopiedId(null), 2000); }} >
+                      <span className="text-sm">Copy Current Invoice ID</span>
+                      <div className="flex flex-row gap-4"><span className="text-xs font-mono">{room.currentInvoiceId}</span>{copiedId === room.currentInvoiceId ? (<IconCheck size={14} className="text-emerald-500" />) : (<IconCopy size={14} className="text-muted-foreground" />)}</div>
+                    </div>
+                  )}
                      </div>
                      <Button variant="secondary" className="gap-2" onClick={() => { setSelectedServiceRoom(room); setIsServiceSheetOpen(true); }}>
                        <IconStethoscope size={16} /> Add Services
@@ -197,6 +205,7 @@ export default function ReceptionRoomBooking() {
               ))
             )}
           </div>
+
         </TabsContent>
 
         {/* --- TAB 3: BED BOARD --- */}

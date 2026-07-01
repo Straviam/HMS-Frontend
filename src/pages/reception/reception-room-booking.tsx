@@ -188,14 +188,15 @@ export default function ReceptionRoomBooking() {
                   <CardContent className="p-5 flex justify-between items-center">
                      <div>
                        <h3 className="font-bold font-heading ml-1">{room.currentPatientName}</h3>
-                       <p className="text-sm text-muted-foreground ml-1">Room {room.roomNumber} ({room.roomType.toUpperCase()})</p>{room.currentInvoiceId && (
-                    <div
-                      className="flex flex-col bg-background border p-2 rounded cursor-pointer hover:bg-muted transition-colors"
-                      onClick={() => {navigator.clipboard.writeText(room.currentInvoiceId!); setCopiedId(room.currentInvoiceId!); toast.success("Invoice ID copied"); setTimeout(() => setCopiedId(null), 2000); }} >
-                      <span className="text-sm">Copy Current Invoice ID</span>
-                      <div className="flex flex-row gap-4"><span className="text-xs font-mono">{room.currentInvoiceId}</span>{copiedId === room.currentInvoiceId ? (<IconCheck size={14} className="text-emerald-500" />) : (<IconCopy size={14} className="text-muted-foreground" />)}</div>
-                    </div>
-                  )}
+                       <p className="text-sm text-muted-foreground ml-1">Room {room.roomNumber} ({room.roomType.toUpperCase()})</p>
+                       {room.currentInvoiceId && (
+                        <div
+                          className="flex flex-col bg-background border p-2 rounded cursor-pointer hover:bg-muted transition-colors"
+                          onClick={() => {navigator.clipboard.writeText(room.currentInvoiceId!); setCopiedId(room.currentInvoiceId!); toast.success("Invoice ID copied"); setTimeout(() => setCopiedId(null), 2000); }} >
+                          <span className="text-sm">Copy Current Invoice ID</span>
+                          <div className="flex flex-row gap-4"><span className="text-xs font-mono">{room.currentInvoiceId}</span>{copiedId === room.currentInvoiceId ? (<IconCheck size={14} className="text-emerald-500" />) : (<IconCopy size={14} className="text-muted-foreground" />)}</div>
+                        </div>
+                      )}
                      </div>
                      <Button variant="secondary" className="gap-2" onClick={() => { setSelectedServiceRoom(room); setIsServiceSheetOpen(true); }}>
                        <IconStethoscope size={16} /> Add Services

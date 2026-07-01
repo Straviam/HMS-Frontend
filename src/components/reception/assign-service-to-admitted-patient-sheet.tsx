@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetDescription } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { IconStethoscope, IconPlus, IconCheck, IconLoader2, IconTrash } from "@tabler/icons-react";
+import { IconStethoscope, IconPlus, IconCheck, IconLoader2, IconTrash, IconCopy } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { getApiOptions, postApiOptions } from "@/lib/utils";
 import type { Room } from "@/store/room-store";
@@ -35,6 +35,8 @@ export function AssignServiceSheet({ open, onOpenChange, room }: AssignServiceSh
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Fetch Master Data when sheet opens
   useEffect(() => {
@@ -165,9 +167,13 @@ export function AssignServiceSheet({ open, onOpenChange, room }: AssignServiceSh
               <span>MR: {room?.currentPatientMrNo}</span>
               <span>Room: {room?.roomNumber}</span>
             </div>
-            <div className="mt-2 text-xs font-mono bg-background px-2 py-1 rounded inline-block border">
-              Inv: {room?.currentInvoiceId}
+            {room?.currentInvoiceId && ( <div
+              className="flex flex-col bg-background border p-2 rounded cursor-pointer hover:bg-muted transition-colors"
+              onClick={() => {navigator.clipboard.writeText(room.currentInvoiceId!); setCopiedId(room.currentInvoiceId!); toast.success("Invoice ID copied"); setTimeout(() => setCopiedId(null), 2000); }} >
+
+              <div className="flex flex-row gap-4"><span className="text-xs font-mono">Inv: {room.currentInvoiceId}</span>{copiedId === room.currentInvoiceId ? (<IconCheck size={20} className="text-emerald-500" />) : (<IconCopy size={20} className="text-muted-foreground" />)}</div>
             </div>
+          )}
           </div>
 
           {/* ADD SERVICES FORM */}

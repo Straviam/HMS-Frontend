@@ -95,7 +95,7 @@ export default function AdminBedsPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
 
-  const [selectedConfRoom, setSelectedConfRoom] = useState(null);
+  const [selectedConfRoom, setSelectedConfRoom] = useState<Room | null>(null);
   const [selectedLogRoom, setSelectedLogRoom] = useState(null);
 
   return (
@@ -238,14 +238,13 @@ export default function AdminBedsPage() {
       <ConfigureRoomSheet
         room={selectedConfRoom}
         open={!!selectedConfRoom} // remember one ! is inveting the truthy or falsy value and other is for inverting again to balance this
-        onOpenChange={(open) => !open && setSelectedConfRoom(null)}
+        onOpenChange={(open: boolean) => !open && setSelectedConfRoom(null)}
       />
 
-      <RoomLogsDialog
-        room={selectedLogRoom}
-        open={!!selectedLogRoom}
-        onOpenChange={(open) => !open && setSelectedLogRoom(null)}
-      />
+
+      {/*   open={!!selectedLogRoom} */}
+      {/*   onOpenChange={(open) => !open && setSelectedLogRoom(null)} */}
+      {/* /> */}
     </div>
   );
 }

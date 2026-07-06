@@ -176,7 +176,7 @@ export function InvoiceDetailSheet({ open, onOpenChange, transactionId }: Invoic
                 <section>
                   <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Payment Record</h3>
                   <div className="space-y-2">
-                    {invoice.payments.map((payment: InvoicePayment, i: number) => (
+                    {invoice.payments.map((payment, i) => (
                       <div key={i} className="flex justify-between items-center text-sm bg-muted/10 border border-border/50 p-3 rounded-md">
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-[10px] uppercase bg-background border-border/50">

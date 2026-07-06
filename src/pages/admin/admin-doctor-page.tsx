@@ -43,7 +43,7 @@ interface LoaderData {
 
 export default function AdminDoctorsPage() {
   const { doctors, stats } = useLoaderData() as LoaderData;
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   return (
     <div className="space-y-6">
@@ -184,7 +184,7 @@ export default function AdminDoctorsPage() {
       <ManageTimingsSheet
         doctor={selectedDoctor}
         open={!!selectedDoctor}
-        onOpenChange={(open) => !open && setSelectedDoctor(null)}
+        onOpenChange={(open: boolean) => !open && setSelectedDoctor(null)}
       />
     </div>
   );

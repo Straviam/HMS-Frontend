@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLoaderData } from "react-router";
+import { useEffect, useState } from "react";
+import { useLoaderData, useSearchParams, type LoaderFunctionArgs } from "react-router";
 import {
   IconReceipt2,
   IconActivity,
@@ -18,6 +18,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { TransactionAuditSheet } from "@/components/transaction/transaction-audit-sheet";
+import { getApiOptions } from "@/lib/utils";
 
 interface Transaction {
   id: string;
@@ -44,31 +45,82 @@ interface LoaderData {
   };
 }
 
-// Data Loader (Simulating a paginated database query)
-export async function adminTransactionLoader(): Promise<LoaderData> {
-  const mockedTransactions: Transaction[] = [
-    { id: "1", txnNo: "TXN-260501-001", patientName: "Ali Ahmed", type: "SERVICE", detail: "Chest X-Ray", amount: 1500, date: "2026-05-01 10:30 AM" },
-    { id: "2", txnNo: "TXN-260501-002", patientName: "Sana Khan", type: "DOCTOR", detail: "Dr. Salman (Consult)", amount: 2000, date: "2026-05-01 11:15 AM" },
-    { id: "3", txnNo: "TXN-260501-003", patientName: "Usman Tariq", type: "ROOM", detail: "General Ward (Day 1)", amount: 5000, date: "2026-05-01 12:00 PM" },
-    { id: "4", txnNo: "TXN-260501-004", patientName: "Fatima Zahra", type: "SERVICE", detail: "Complete Blood Count", amount: 800, date: "2026-05-01 02:15 PM" },
-    { id: "5", txnNo: "TXN-260501-005", patientName: "Zain Malik", type: "DOCTOR", detail: "Dr. Ayesha (Follow-up)", amount: 1500, date: "2026-05-01 03:00 PM" },
-  ];
+export async function adminTransactionLoader({ request }: LoaderFunctionArgs): Promise<LoaderData> {
+  try {
+    const url = new URL(request.url);
+    const q = url.searchParams.get("q") || "";
+    const page = url.searchParams.get("page") || "1";
 
-  return {
-    transactions: mockedTransactions,
-    stats: { totalToday: 10800, serviceRev: 2300, doctorRev: 3500, roomRev: 5000 },
-    pagination: { page: 1, totalPages: 45, totalCount: 2240 }
-  };
+    const [transactionsRes, statsRes] = await Promise.all([
+      fetch(`http://localhost:4040/api/v1/transactions?search=${q}&page=${page}&limit=10`, getApiOptions),
+      fetch("http://localhost:4040/api/v1/transactions/stats", getApiOptions)
+    ]);
+
+    if (!transactionsRes.ok) {
+      const err = await transactionsRes.json().catch(() => ({}));
+      throw new Error(err.message || "Failed to fetch transactions list.");
+    }
+
+    if (!statsRes.ok) {
+      const err = await statsRes.json().catch(() => ({}));
+      throw new Error(err.message || "Failed to fetch transaction stats.");
+    }
+
+    const transactionData = await transactionsRes.json();
+    const statsData = await statsRes.json();
+
+    return {
+      transactions: transactionData.data.transactions,
+      stats: statsData.data,
+      pagination: transactionData.data.pagination
+    };
+  }
+  catch (error) {
+    console.error("Loader Exception:", error instanceof Error ? error.message : "Unknown error");
+    throw new Response("Failed to load transaction data from server.", {
+      status: 500,
+      statusText: error instanceof Error ? error.message : "Internal Server Error"
+    });
+  }
 }
 
 // Main Component
 export default function AdminTransactionsPage() {
   const { transactions, stats, pagination } = useLoaderData() as LoaderData;
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTxn, setSelectedTxn] = useState<Transaction | null>(null);
-
-  // NOTE: this is the new flow of doing the same thing as done in doctors
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [selectedTxnId, setSelectedTxnId] = useState<string | null>(null);
+
+  // Debounced Search Logic
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearchParams((prev) => {
+        const currentQ = prev.get("q") || "";
+        if (searchTerm === currentQ) return prev;
+
+        const newParams = new URLSearchParams(prev);
+        if (searchTerm) {
+          newParams.set("q", searchTerm);
+        } else {
+          newParams.delete("q");
+        }
+
+        newParams.set("page", "1"); // Reset to page 1 on new search
+        return newParams;
+      }, { replace: true });
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, setSearchParams]);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("page", newPage.toString());
+      return newParams;
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -125,13 +177,13 @@ export default function AdminTransactionsPage() {
         </Card>
       </div>
 
-      {/* High-Density Data Table Section */}
+      {/* Data Table  */}
       <Card className="shadow-sm border-border/50">
         <div className="p-4 border-b flex items-center justify-between gap-4 bg-muted/10">
           <div className="relative w-full max-w-md">
             <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <Input
-              placeholder="Search by TXN No, Patient, or Detail..."
+              placeholder="Search by TXN No, Patient..."
               className="pl-10 bg-background"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -158,7 +210,7 @@ export default function AdminTransactionsPage() {
                   {txn.txnNo}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {txn.date}
+                  {new Date(txn.date).toLocaleString()}
                 </TableCell>
                 <TableCell className="font-medium text-foreground">
                   {txn.patientName}
@@ -192,19 +244,32 @@ export default function AdminTransactionsPage() {
         {/* Pagination Controls */}
         <div className="p-4 border-t bg-muted/10 flex items-center justify-between text-sm">
           <div className="text-muted-foreground">
-            Showing <strong className="text-foreground">{(pagination.page - 1) * 50 + 1}</strong> to <strong className="text-foreground">{Math.min(pagination.page * 50, pagination.totalCount)}</strong> of <strong className="text-foreground">{pagination.totalCount}</strong>
+            Showing <strong className="text-foreground">{(pagination.page - 1) * 10 + 1}</strong> to <strong className="text-foreground">{Math.min(pagination.page * 10, pagination.totalCount)}</strong> of <strong className="text-foreground">{pagination.totalCount}</strong>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled={pagination.page === 1} className="h-8 w-8 p-0">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page === 1}
+              className="h-8 w-8 p-0"
+              onClick={() => handlePageChange(pagination.page - 1)}
+            >
               <IconChevronLeft size={16} />
             </Button>
             <div className="font-medium px-2">Page {pagination.page} of {pagination.totalPages}</div>
-            <Button variant="outline" size="sm" disabled={pagination.page === pagination.totalPages} className="h-8 w-8 p-0">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page === pagination.totalPages}
+              className="h-8 w-8 p-0"
+              onClick={() => handlePageChange(pagination.page + 1)}
+            >
               <IconChevronRight size={16} />
             </Button>
           </div>
         </div>
       </Card>
+
       <TransactionAuditSheet
         transactionId={selectedTxnId}
         open={!!selectedTxnId}

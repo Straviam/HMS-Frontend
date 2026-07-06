@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { navigationConfig } from "@/lib/nav";
 import {
   Sidebar,
@@ -11,10 +11,29 @@ import {
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { IconLogout, IconActivity, IconChevronRight } from "@tabler/icons-react";
+import { useAuthStore } from "@/store/auth-store";
 
 export function AppSidebar({ userRole }: { userRole: string }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuthStore();
   const filteredNav = navigationConfig.filter((item) => item.roles.includes(userRole));
+
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:4040/api/v1/users/logout", {
+        method: "POST",
+        credentials: "include",
+      }).catch((err) => {
+        console.warn("Backend logout request failed:", err);
+      });
+    } catch (error) {
+      console.warn("Error during backend logout:", error);
+    } finally {
+      logout();
+      navigate("/login");
+    }
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r-0 shadow-xl">
@@ -65,6 +84,7 @@ export function AppSidebar({ userRole }: { userRole: string }) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
+                onClick={handleLogout}
                 className="h-11 px-4 rounded-xl text-white/50 hover:bg-destructive hover:text-white transition-all"
               >
                 <IconLogout size={20} stroke={1.5} />

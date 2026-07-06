@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 import { iconDictionary } from "@/lib/icons";
 import ServiceConfigSheet from "@/components/facility/service-config-sheet";
 import CategoryConfigSheet from "@/components/facility/category-config-sheet";
@@ -50,8 +50,8 @@ interface LoaderData {
 export async function adminFacilityLoader(): Promise<LoaderData> {
   try {
     const [serviceRes, serviceTypeRes] = await Promise.all([
-      fetch("http://localhost:4040/api/v1/services", getApiOptions),
-      fetch("http://localhost:4040/api/v1/services/types", getApiOptions)
+      fetch(`${API_BASE_URL}/services`, getApiOptions),
+      fetch(`${API_BASE_URL}/services/types`, getApiOptions)
     ]);
 
     if (!serviceRes.ok) {

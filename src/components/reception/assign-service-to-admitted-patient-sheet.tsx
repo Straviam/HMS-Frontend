@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { IconStethoscope, IconPlus, IconCheck, IconLoader2, IconTrash, IconCopy } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { getApiOptions, postApiOptions } from "@/lib/utils";
+import { getApiOptions, postApiOptions, API_BASE_URL } from "@/lib/utils";
 import type { Room } from "@/store/room-store";
 
 // Type definitions for this component
@@ -46,9 +46,9 @@ export function AssignServiceSheet({ open, onOpenChange, room }: AssignServiceSh
       setIsLoadingData(true);
       try {
         const [typesRes, servRes, docsRes] = await Promise.all([
-          fetch("http://localhost:4040/api/v1/services/types", getApiOptions),
-          fetch("http://localhost:4040/api/v1/services", getApiOptions),
-          fetch("http://localhost:4040/api/v1/doctors/available", getApiOptions),
+          fetch(`${API_BASE_URL}/services/types`, getApiOptions),
+          fetch(`${API_BASE_URL}/services`, getApiOptions),
+          fetch(`${API_BASE_URL}/doctors/available`, getApiOptions),
         ]);
 
         if (!typesRes.ok || !servRes.ok || !docsRes.ok) throw new Error("Failed to load configs");
@@ -129,7 +129,7 @@ export function AssignServiceSheet({ open, onOpenChange, room }: AssignServiceSh
         // timingId: item.timingId || null, // Add if timing logic is implemented
       }));
 
-      const response = await fetch(`http://localhost:4040/api/v1/invoices/${room.currentInvoiceId}/addItem`, {
+      const response = await fetch(`${API_BASE_URL}/invoices/${room.currentInvoiceId}/addItem`, {
         ...postApiOptions,
         method: "POST",
         body: JSON.stringify({ items: formattedItems })

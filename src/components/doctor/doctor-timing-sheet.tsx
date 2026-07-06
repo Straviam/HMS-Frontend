@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter
 } from "@/components/ui/sheet";
@@ -27,7 +28,7 @@ export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
     // TODO: validate the input before calling 
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:4040/api/v1/doctors/${doctorId}/timing`, {
+      const response = await fetch(`${API_BASE_URL}/doctors/${doctorId}/timing`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +62,7 @@ export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
 
   const deleteTiming = async (timingId: string) => {
     try {
-      const response = await fetch(`http://localhost:4040/api/v1/doctors/timing/${timingId}`, {
+      const response = await fetch(`${API_BASE_URL}/doctors/timing/${timingId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

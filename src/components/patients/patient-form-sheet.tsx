@@ -7,7 +7,7 @@ import { IconDatabaseEdit, IconUserPlus } from "@tabler/icons-react";
 import { usePatientStore } from "../../store/patient-store";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "../ui/select";
 import { toast } from "sonner";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 
 export function PatientFormSheet() {
   const isOpen = usePatientStore((state) => state.isFormSheetOpen);
@@ -70,7 +70,7 @@ export function PatientFormSheet() {
 
     try {
       if (mode === "add") {
-        const response = await fetch("http://localhost:4040/api/v1/patients", {
+        const response = await fetch(`${API_BASE_URL}/patients`, {
           ...getApiOptions,
           method: "POST",
           body: JSON.stringify(formData),
@@ -98,7 +98,7 @@ export function PatientFormSheet() {
       } else if (mode === "update") {
         const response = await fetch(
 
-          `http://localhost:4040/api/v1/patients/${patient?.id}`,
+          `${API_BASE_URL}/patients/${patient?.id}`,
 
           {
             ...getApiOptions,

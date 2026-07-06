@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useLoaderData, useNavigation, useSearchParams, type LoaderFunctionArgs } from "react-router";
 import {
@@ -258,8 +259,8 @@ export async function adminPatientLoader({ request }: LoaderFunctionArgs): Promi
 
     // TODO: currenlty for every search what i am doing is calling for stats which is bad i must have to cache the response of stats for 5 min so that i donot call stats api again and again on every search
     const [patientsRes, statsRes] = await Promise.all([
-      fetch(`http://localhost:4040/api/v1/patients?search=${q}&page=${page}&limit=5`, apiOptions),
-      fetch("http://localhost:4040/api/v1/patients/stats", apiOptions)
+      fetch(`${API_BASE_URL}/patients?search=${q}&page=${page}&limit=5`, apiOptions),
+      fetch(`${API_BASE_URL}/patients/stats`, apiOptions)
     ]);
 
     if (!patientsRes.ok) {

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter
 } from "@/components/ui/sheet";
@@ -32,7 +33,7 @@ export function ConfigureRoomSheet({ room, open, onOpenChange }: any) {
 
     try {
 
-      const response = await fetch(`http://localhost:4040/api/v1/rooms/${room.id}`, {
+      const response = await fetch(`${API_BASE_URL}/rooms/${room.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',
@@ -61,7 +62,7 @@ export function ConfigureRoomSheet({ room, open, onOpenChange }: any) {
   const handleDecommission = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:4040/api/v1/rooms/${room.id}`, {
+      const response = await fetch(`${API_BASE_URL}/rooms/${room.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',

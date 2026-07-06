@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter
 } from "@/components/ui/sheet";
@@ -24,7 +25,7 @@ export function OnboardDoctorSheet({ open, onOpenChange }: any) {
   const addDoctorHandler = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:4040/api/v1/doctors', {
+      const response = await fetch(`${API_BASE_URL}/doctors`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

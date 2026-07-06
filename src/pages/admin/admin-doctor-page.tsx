@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import { useLoaderData } from "react-router";
 import {
   IconStethoscope,
@@ -206,8 +207,8 @@ export async function AdminDoctorLoader(): Promise<LoaderData> {
 
 
     const [doctorsRes, statsRes] = await Promise.all([
-      fetch("http://localhost:4040/api/v1/doctors", apiOptions),
-      fetch("http://localhost:4040/api/v1/doctors/stats", apiOptions)
+      fetch(`${API_BASE_URL}/doctors`, apiOptions),
+      fetch(`${API_BASE_URL}/doctors/stats`, apiOptions)
     ]);
 
     if (!doctorsRes.ok) {

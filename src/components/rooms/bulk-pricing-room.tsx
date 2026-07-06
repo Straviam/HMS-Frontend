@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
@@ -42,7 +43,7 @@ export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
 
     try {
 
-      const response = await fetch(`http://localhost:4040/api/v1/rooms/pricing/bulk-override`, {
+      const response = await fetch(`${API_BASE_URL}/rooms/pricing/bulk-override`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',
@@ -77,7 +78,7 @@ export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
 
     try {
 
-      const response = await fetch(`http://localhost:4040/api/v1/rooms/pricing/bulk-multiplier`, {
+      const response = await fetch(`${API_BASE_URL}/rooms/pricing/bulk-multiplier`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',

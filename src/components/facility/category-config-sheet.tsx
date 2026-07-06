@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -58,8 +59,8 @@ export default function CategoryConfigSheet({ open, onOpenChange, initialData }:
 
     try {
       const endpoint = isEditing
-        ? `http://localhost:4040/api/v1/services/types/${initialData.id}`
-        : "http://localhost:4040/api/v1/services/types";
+        ? `${API_BASE_URL}/services/types/${initialData.id}`
+        : `${API_BASE_URL}/services/types`;
 
       const response = await fetch(endpoint, {
         method: isEditing ? "PATCH" : "POST",

@@ -4,7 +4,7 @@ import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { IconDoorExit, IconLoader2, IconReceipt, IconCheck } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 import { useRoomStore, type Room } from "@/store/room-store";
 
 interface RoomDischargingSheetProps {
@@ -34,7 +34,7 @@ export function RoomDischargingSheet({ open, onOpenChange, manageRoom, onSuccess
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:4040/api/v1/roomBooking/${manageRoom.currentInvoiceId}/finalize`, {
+      const response = await fetch(`${API_BASE_URL}/roomBooking/${manageRoom.currentInvoiceId}/finalize`, {
         ...getApiOptions,
         method: "PATCH"
       });

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { IconEdit, IconTrash, IconLock, IconLoader2 } from "@tabler/icons-react";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface Transaction {
@@ -39,7 +39,7 @@ export function ManageDraftSheet({ open, onOpenChange, invoice }: ManageDraftShe
   useEffect(() => {
     if (open && invoice?.id) {
       setIsLoading(true);
-      fetch(`http://localhost:4040/api/v1/invoices/${invoice.id}`, getApiOptions)
+      fetch(`${API_BASE_URL}/invoices/${invoice.id}`, getApiOptions)
         .then(async (res) => {
           const data = await res.json();
           if (!res.ok) throw new Error(data.message || "Failed to fetch draft invoice data");

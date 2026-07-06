@@ -16,7 +16,7 @@ import { AddRoomSheet } from "@/components/rooms/add-room-sheet";
 import { BulkPricingDialog } from "@/components/rooms/bulk-pricing-room";
 import { ConfigureRoomSheet } from "@/components/rooms/configure-room-sheet";
 import { RoomLogsDialog } from "@/components/rooms/room-logs-dialog";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 
 type RoomStatus = "AVAILABLE" | "OCCUPIED" | "UNDER_MAINTENANCE" | "CLEANING";
 
@@ -43,8 +43,8 @@ export async function AdminBedLoader(): Promise<LoaderData> {
 
   try {
     const [roomRes, statsRes] = await Promise.all([
-      fetch("http://localhost:4040/api/v1/rooms", getApiOptions),
-      fetch("http://localhost:4040/api/v1/rooms/stats", getApiOptions)
+      fetch(`${API_BASE_URL}/rooms`, getApiOptions),
+      fetch(`${API_BASE_URL}/rooms/stats`, getApiOptions)
     ]);
 
     if (!roomRes.ok) {

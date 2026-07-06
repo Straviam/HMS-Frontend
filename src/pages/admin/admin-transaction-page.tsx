@@ -18,7 +18,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { TransactionAuditSheet } from "@/components/transaction/transaction-audit-sheet";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 
 interface Transaction {
   id: string;
@@ -52,8 +52,8 @@ export async function adminTransactionLoader({ request }: LoaderFunctionArgs): P
     const page = url.searchParams.get("page") || "1";
 
     const [transactionsRes, statsRes] = await Promise.all([
-      fetch(`http://localhost:4040/api/v1/transactions?search=${q}&page=${page}&limit=10`, getApiOptions),
-      fetch("http://localhost:4040/api/v1/transactions/stats", getApiOptions)
+      fetch(`${API_BASE_URL}/transactions?search=${q}&page=${page}&limit=10`, getApiOptions),
+      fetch(`${API_BASE_URL}/transactions/stats`, getApiOptions)
     ]);
 
     if (!transactionsRes.ok) {

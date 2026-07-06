@@ -5,7 +5,7 @@ import { IconEmergencyBed, IconLoader2 } from "@tabler/icons-react";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from "../ui/select";
 import { toast } from "sonner";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 import { useRoomStore, type Room, type Patient } from "@/store/room-store";
 
 interface RoomBookingSheetProps {
@@ -30,7 +30,7 @@ export function RoomBookingSheet({ open, onOpenChange, activePatient, onSuccessR
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("http://localhost:4040/api/v1/roomBooking/generate", {
+      const response = await fetch(`${API_BASE_URL}/roomBooking/generate`, {
         ...getApiOptions,
         method: "POST",
         body: JSON.stringify({ patientId: activePatient.id, roomId: selectedRoom.id })

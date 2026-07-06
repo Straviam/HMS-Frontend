@@ -21,7 +21,7 @@ import {
 import { PaymentCollectionSheet } from "@/components/transaction/payment-collection-sheet";
 import { InvoiceDetailSheet } from "@/components/transaction/transaction-invoice-sheet";
 import { ManageDraftSheet } from "@/components/transaction/manage-draft-invoice-sheet";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 
 interface Invoice {
   id: string;
@@ -58,8 +58,8 @@ export async function adminInvoiceLoader({ request }: LoaderFunctionArgs): Promi
     const statusQuery = status !== "ALL" ? `&status=${status}` : "";
 
     const [invoicesRes, statsRes] = await Promise.all([
-      fetch(`http://localhost:4040/api/v1/invoices?search=${q}&page=${page}&limit=10${statusQuery}`, getApiOptions),
-      fetch("http://localhost:4040/api/v1/invoices/stats", getApiOptions)
+      fetch(`${API_BASE_URL}/invoices?search=${q}&page=${page}&limit=10${statusQuery}`, getApiOptions),
+      fetch(`${API_BASE_URL}/invoices/stats`, getApiOptions)
     ]);
 
     if (!invoicesRes.ok) {

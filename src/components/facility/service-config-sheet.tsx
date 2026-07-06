@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -63,8 +64,8 @@ export default function ServiceConfigSheet({ open, onOpenChange, categories, ini
     try {
       // Dynamic endpoint and method based on whether we are editing
       const endpoint = isEditing
-        ? `http://localhost:4040/api/v1/services/${initialData.id}`
-        : "http://localhost:4040/api/v1/services";
+        ? `${API_BASE_URL}/services/${initialData.id}`
+        : `${API_BASE_URL}/services`;
 
       const response = await fetch(endpoint, {
         method: isEditing ? "PATCH" : "POST",

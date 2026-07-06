@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter
 } from "@/components/ui/sheet";
@@ -35,7 +36,7 @@ export function AddRoomSheet({ open, onOpenChange }: AddRoomSheetProps) {
 
     try {
 
-      const response = await fetch(`http://localhost:4040/api/v1/rooms`, {
+      const response = await fetch(`${API_BASE_URL}/rooms`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',

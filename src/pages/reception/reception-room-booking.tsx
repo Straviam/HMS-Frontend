@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LiveBedBoard } from "@/components/reception/bed-board";
 import { useRoomStore, type Room, type Patient } from "@/store/room-store";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 import { AssignServiceSheet } from "@/components/reception/assign-service-to-admitted-patient-sheet";
 import { RoomBookingSheet } from "@/components/reception/room-booking-sheet";
 import { toast } from "sonner";
@@ -17,9 +17,9 @@ import { toast } from "sonner";
 export async function ReceptionBedLoader() {
   try {
     const [statsRes, roomsRes, bookingsRes] = await Promise.all([
-      fetch("http://localhost:4040/api/v1/rooms/stats", getApiOptions),
-      fetch("http://localhost:4040/api/v1/rooms/active", getApiOptions), // NEW ENDPOINT 1
-      fetch("http://localhost:4040/api/v1/roomBooking/active", getApiOptions), // NEW ENDPOINT 2
+      fetch(`${API_BASE_URL}/rooms/stats`, getApiOptions),
+      fetch(`${API_BASE_URL}/rooms/active`, getApiOptions), // NEW ENDPOINT 1
+      fetch(`${API_BASE_URL}/roomBooking/active`, getApiOptions), // NEW ENDPOINT 2
     ]);
 
     const statsData = await statsRes.json();
@@ -85,7 +85,7 @@ export default function ReceptionRoomBooking() {
       setHasSearchedAdmissions(true);
       setIsSearchingAdmissions(true);
       try {
-        const res = await fetch(`http://localhost:4040/api/v1/patients?search=${encodeURIComponent(admissionSearch)}`, getApiOptions);
+        const res = await fetch(`${API_BASE_URL}/patients?search=${encodeURIComponent(admissionSearch)}`, getApiOptions);
         if (res.ok) {
           const data = await res.json();
           setAdmissionResults(data.data.patients || []);

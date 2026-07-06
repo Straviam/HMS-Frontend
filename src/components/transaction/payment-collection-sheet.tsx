@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import { useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
@@ -38,7 +39,7 @@ export function PaymentCollectionSheet({ open, onOpenChange, invoice }: PaymentC
   const handleCollectPayment = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:4040/api/v1/invoices/${invoice.id}/pay`, {
+      const response = await fetch(`${API_BASE_URL}/invoices/${invoice.id}/pay`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

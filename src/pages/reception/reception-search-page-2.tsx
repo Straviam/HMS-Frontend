@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { IconAdjustmentsHorizontal, IconSearch } from "@tabler/icons-react";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 import type { Patient } from "../../types/types";
 import { usePatientStore } from "../../store/patient-store";
 import { PatientFormSheet } from "../../components/patients/patient-form-sheet";
@@ -37,7 +37,7 @@ export default function PatientRegistry() {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:4040/api/v1/patients?search=${encodeURIComponent(searchTerm)}&page=${currentPage}`,
+          `${API_BASE_URL}/patients?search=${encodeURIComponent(searchTerm)}&page=${currentPage}`,
           getApiOptions,
         );
         if (!response.ok) throw new Error("Failed to fetch search results");

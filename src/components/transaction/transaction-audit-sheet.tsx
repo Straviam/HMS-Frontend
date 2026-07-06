@@ -15,7 +15,7 @@ import {
   IconAlertTriangle,
   IconLoader2
 } from "@tabler/icons-react";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface AuditTransaction {
@@ -46,7 +46,7 @@ export function TransactionAuditSheet({ open, onOpenChange, transactionId }: Tra
   useEffect(() => {
     if (open && transactionId) {
       setIsLoading(true);
-      fetch(`http://localhost:4040/api/v1/transactions/audit/${transactionId}`, getApiOptions)
+      fetch(`${API_BASE_URL}/transactions/audit/${transactionId}`, getApiOptions)
         .then(async (res) => {
           const data = await res.json();
           if (!res.ok) throw new Error(data.message || "Failed to fetch audit data");

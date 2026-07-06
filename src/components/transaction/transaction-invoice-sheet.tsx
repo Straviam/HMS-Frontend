@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { IconPrinter, IconReceipt, IconLoader2 } from "@tabler/icons-react";
-import { getApiOptions } from "@/lib/utils";
+import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface InvoiceLineItem {
@@ -53,7 +53,7 @@ export function InvoiceDetailSheet({ open, onOpenChange, transactionId }: Invoic
   useEffect(() => {
     if (open && transactionId) {
       setIsLoading(true);
-      fetch(`http://localhost:4040/api/v1/invoices/${transactionId}`, getApiOptions)
+      fetch(`${API_BASE_URL}/invoices/${transactionId}`, getApiOptions)
         .then(async (res) => {
           const data = await res.json();
           if (!res.ok) throw new Error(data.message || "Failed to fetch invoice data");

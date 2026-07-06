@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "
 import { Label } from "@/components/ui/label";
 import { IconFileSignal, IconPlus, IconReceipt, IconPrinter, IconCheck } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { getApiOptions, patchApiOptions, postApiOptions } from "@/lib/utils";
+import { getApiOptions, patchApiOptions, postApiOptions, API_BASE_URL } from "@/lib/utils";
 import type { ServiceType, Service, Doctor, CartItem } from "../../types/types";
 import { usePatientStore } from "../../store/patient-store";
 
@@ -43,9 +43,9 @@ export function AssignServiceSheet() {
     const fetchMasterData = async () => {
       try {
         const [typesRes, servRes, docsRes] = await Promise.all([
-          fetch("http://localhost:4040/api/v1/services/types", getApiOptions),
-          fetch("http://localhost:4040/api/v1/services", getApiOptions),
-          fetch("http://localhost:4040/api/v1/doctors/available", getApiOptions),
+          fetch(`${API_BASE_URL}/services/types`, getApiOptions),
+          fetch(`${API_BASE_URL}/services`, getApiOptions),
+          fetch(`${API_BASE_URL}/doctors/available`, getApiOptions),
         ]);
         const typesData = await typesRes.json();
         const servData = await servRes.json();
@@ -119,7 +119,7 @@ export function AssignServiceSheet() {
           timingId: newItem.timingId || null,
         };
         const response = await fetch(
-          `http://localhost:4040/api/v1/invoices/${invoiceId}/addItem`,
+          `${API_BASE_URL}/invoices/${invoiceId}/addItem`,
           {
             ...postApiOptions, method: "POST", body: JSON.stringify({ items: [formattedItems] }),
           },
@@ -153,7 +153,7 @@ export function AssignServiceSheet() {
       }));
 
       const response = await fetch(
-        "http://localhost:4040/api/v1/invoices/reception/generate",
+        `${API_BASE_URL}/invoices/reception/generate`,
         {
           ...postApiOptions, method: "POST", body: JSON.stringify({
             patientId: patient.id,
@@ -179,7 +179,7 @@ export function AssignServiceSheet() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:4040/api/v1/invoices/${invoiceId}/reception/finalize`,
+        `${API_BASE_URL}/invoices/${invoiceId}/reception/finalize`,
         {
           ...patchApiOptions,
           method: "PATCH",
@@ -201,7 +201,7 @@ export function AssignServiceSheet() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:4040/api/v1/invoices/${invoiceId}/pay`,
+        `${API_BASE_URL}/invoices/${invoiceId}/pay`,
         {
           ...postApiOptions,
           method: "POST",

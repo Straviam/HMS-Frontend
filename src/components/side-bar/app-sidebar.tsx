@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/utils";
 import { Link, useLocation, useNavigate } from "react-router";
 import { navigationConfig } from "@/lib/nav";
 import {
@@ -21,7 +22,7 @@ export function AppSidebar({ userRole }: { userRole: string }) {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:4040/api/v1/users/logout", {
+      await fetch(`${API_BASE_URL}/users/logout`, {
         method: "POST",
         credentials: "include",
       }).catch((err) => {

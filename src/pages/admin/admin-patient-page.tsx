@@ -51,30 +51,32 @@ export default function AdminPatientsPage() {
   const navigation = useNavigation();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
 
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearchParams((prev) => {
+        const currentQ = prev.get("q") || "";
 
-  // making a debouncing searching you know why? look A1 solution app 
-  useEffect(
-    () => {
-      const timeoutId = setTimeout(() => {
-        setSearchParams((prev) => {
-          if (searchTerm) {
-            prev.set("q", searchTerm)
-          } else {
-            prev.delete("q");
-          }
-          prev.set("page", "1"); // reset to page one when search
+        // Prevent running the reset logic if the search term hasn't actually changed
+        if (searchTerm === currentQ) return prev;
 
-          return prev;
+        const newParams = new URLSearchParams(prev);
+        if (searchTerm) {
+          newParams.set("q", searchTerm);
+        } else {
+          newParams.delete("q");
+        }
 
-        }, { replace: true }) // replace: true prevents flooding the browser history
-      }, 500)
+        newParams.set("page", "1"); // Only reset to page one when search actually changes
+        return newParams;
+      }, { replace: true });
+    }, 500);
 
-      return () => clearTimeout(timeoutId);
-    }, [searchParams, searchTerm])
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, setSearchParams]);
 
   const handlePageChange = (newPage: number) => {
     setSearchParams((prev) => {
-      const newParams = new URLSearchParams(prev); // why new instance cuz of the same refernce of url mutating it does not tell react that rerender as the state chnaged
+      const newParams = new URLSearchParams(prev);
       newParams.set("page", newPage.toString());
       return newParams;
     });
@@ -131,7 +133,6 @@ export default function AdminPatientsPage() {
               </div>
               <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
                 {Math.round((stats.demographics.male / stats.demographics.total) * 100)}% / {Math.round((stats.demographics.female / stats.demographics.total) * 100)}%
-
               </span>
             </div>
           </CardContent>
@@ -201,26 +202,31 @@ export default function AdminPatientsPage() {
         {/* Pagination Controls */}
         <div className="p-4 border-t bg-muted/10 flex items-center justify-between text-sm">
           <div className="text-muted-foreground">
-            Showing <strong className="text-foreground">{(pagination.page - 1) * 50 + 1}</strong> to <strong className="text-foreground">{Math.min(pagination.page * 50, pagination.totalCount)}</strong> of <strong className="text-foreground">{pagination.totalCount}</strong>
+            Showing <strong className="text-foreground">{(pagination.page - 1) * 5 + 1}</strong> to <strong className="text-foreground">{Math.min(pagination.page * 5, pagination.totalCount)}</strong> of <strong className="text-foreground">{pagination.totalCount}</strong>
           </div>
+
           <div className="flex items-center gap-2">
-            <Button variant="outline"
+            <Button
+              variant="outline"
               size="sm"
               disabled={pagination.page === 1}
               className="h-8 w-8 p-0"
-              onClick={() => handlePageChange(pagination.page - 1)}>
+              onClick={() => handlePageChange(pagination.page - 1)}
+            >
               <IconChevronLeft size={16} />
             </Button>
 
             <div className="font-medium px-2">Page {pagination.page} of {pagination.totalPages}</div>
-            <Button variant="outline"
+
+            <Button
+              variant="outline"
               size="sm"
               disabled={pagination.page === pagination.totalPages}
-              className="h-8 w-8 p-0">
-              <IconChevronRight size={16}
-                onClick={() => handlePageChange(pagination.page + 1)} />
+              className="h-8 w-8 p-0"
+              onClick={() => handlePageChange(pagination.page + 1)}
+            >
+              <IconChevronRight size={16} />
             </Button>
-
           </div>
         </div>
       </Card>
@@ -229,7 +235,7 @@ export default function AdminPatientsPage() {
       <PatientLedgerSheet
         patient={selectedPatient}
         open={!!selectedPatient}
-        onOpenChange={(open) => !open && setSelectedPatient(null)}
+        onOpenChange={(open: boolean) => !open && setSelectedPatient(null)}
       />
     </div>
   );
@@ -237,7 +243,6 @@ export default function AdminPatientsPage() {
 
 
 export async function adminPatientLoader({ request }: LoaderFunctionArgs): Promise<LoaderData> {
-
   try {
     const url = new URL(request.url);
     const q = url.searchParams.get("q") || "";
@@ -280,8 +285,7 @@ export async function adminPatientLoader({ request }: LoaderFunctionArgs): Promi
       status: 500,
       statusText: error instanceof Error ? error.message : "Internal Server Error"
     });
-
   }
 }
 
-// FIX: Pagination Does not working.
+

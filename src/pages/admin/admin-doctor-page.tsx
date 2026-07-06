@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { ManageTimingsSheet } from "@/components/doctor/doctor-timing-sheet";
 import { OnboardDoctorSheet } from "@/components/doctor/doctor-onboarding-sheet";
+import { formatToAmPm } from "@/lib/time-handling";
 
 interface DoctorTiming {
   id: string;
@@ -43,7 +44,7 @@ interface LoaderData {
 
 export default function AdminDoctorsPage() {
   const { doctors, stats } = useLoaderData() as LoaderData;
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   return (
     <div className="space-y-6">
@@ -141,13 +142,13 @@ export default function AdminDoctorsPage() {
 
                       {/* Time & Tokens */}
                       <div className="flex flex-col">
-                        <span className="text-muted-foreground text-xs">{t.startTime} - {t.endTime}</span>
+                        <span className="text-muted-foreground text-xs">{formatToAmPm(t.startTime)} - {formatToAmPm(t.endTime)}</span>
                         <span className="text-[10px] text-muted-foreground/70 uppercase">Max: {t.maxTokens}</span>
                       </div>
 
                       {/* Fee Tag */}
                       <span className="font-mono text-xs font-medium text-primary bg-primary/5 border border-primary/20 px-2 py-1 rounded shadow-sm">
-                        Rs {3000}
+                        Rs {t.consultationFee}
                       </span>
                     </div>
                   ))}
@@ -184,7 +185,7 @@ export default function AdminDoctorsPage() {
       <ManageTimingsSheet
         doctor={selectedDoctor}
         open={!!selectedDoctor}
-        onOpenChange={(open) => !open && setSelectedDoctor(null)}
+        onOpenChange={(open: boolean) => !open && setSelectedDoctor(null)}
       />
     </div>
   );

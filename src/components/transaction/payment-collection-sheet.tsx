@@ -38,12 +38,7 @@ export function PaymentCollectionSheet({ open, onOpenChange, invoice }: PaymentC
   const handleCollectPayment = async () => {
     setIsLoading(true);
     try {
-      // 1. POST to your payments endpoint
-      // This endpoint should:
-      // - INSERT INTO payments (...)
-      // - UPDATE invoices SET status = 'DONE' WHERE id = invoice.id
-      /*
-      const response = await fetch(`http://localhost:4040/api/v1/invoices/${invoice.id}/payments`, {
+      const response = await fetch(`http://localhost:4040/api/v1/invoices/${invoice.id}/pay`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -55,10 +50,7 @@ export function PaymentCollectionSheet({ open, onOpenChange, invoice }: PaymentC
       });
 
       if (!response.ok) throw new Error("Payment processing failed");
-      */
 
-      // Simulating network delay for realistic UI feedback
-      await new Promise(resolve => setTimeout(resolve, 800));
 
       toast.success("Payment collected and invoice marked as DONE.");
 

@@ -11,7 +11,9 @@ export default function AdminLayout() {
   if (!isAuthenticated) {
     return null;
   }
-
+  if (!loggedUser) {
+    return null;
+  }
   const user = loggedUser.data;
   if (user.role != "ADMIN") {
     return <Unauthorized />

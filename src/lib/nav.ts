@@ -16,7 +16,14 @@ import {
 } from "@tabler/icons-react";
 
 
-export const navigationConfig = [
+export interface NavItem {
+  title: string;
+  href: string;
+  roles: string[];
+  icon: React.ComponentType<any>;
+}
+
+export const navigationConfig: readonly NavItem[] = [
   // -----------------------------------------
   // 1. DASHBOARDS (Everyone gets one, but the layout will differ)
   // -----------------------------------------
@@ -24,7 +31,7 @@ export const navigationConfig = [
     title: "Dashboard",
     href: "/admin",
     icon: IconLayoutDashboard,
-    roles: ["ADMIN", "DOCTOR",  "OPD_OPERATOR", "MANAGMENT", "ACCOUNTANT"],
+    roles: ["ADMIN", "DOCTOR", "OPD_OPERATOR", "MANAGMENT", "ACCOUNTANT"],
   },
   // -----------------------------------------
   // RECEPTIONIST
@@ -50,7 +57,7 @@ export const navigationConfig = [
     title: "Patient Registry",
     href: "/admin/patients",
     icon: IconUsers,
-    roles: ["ADMIN",  "MANAGMENT"],
+    roles: ["ADMIN", "MANAGMENT"],
   },
   {
     title: "Admissions & Beds",
@@ -80,7 +87,7 @@ export const navigationConfig = [
     href: "/admin/doctors",
     icon: IconStethoscope,
     roles: ["ADMIN"],
-  }, ,
+  },
 
   // -----------------------------------------
   // 4. OPD / LAB OPS
@@ -128,13 +135,13 @@ export const navigationConfig = [
     icon: IconBuildingHospital,
     roles: ["ADMIN"],
   },
-  {
-    title: "System Configuration",
-    href: "/admin/settings", // Manages service_types, prices, system defaults
-    icon: IconSettings,
-    roles: ["ADMIN"],
-  },
+  // {
+  //   title: "System Configuration",
+  //   href: "/admin/settings", // Manages service_types, prices, system defaults
+  //   icon: IconSettings,
+  //   roles: ["ADMIN"],
+  // },
 
-];
+] as const;
 
 // TODO: Set all seprate object for seperate role as url  or href is different

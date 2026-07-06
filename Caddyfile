@@ -1,0 +1,14 @@
+:80 {
+    # Serve static files from /srv
+    root * /srv
+    file_server
+
+    # Handle HTML5 pushState routing (React Router)
+    try_files {path} /index.html
+
+    # Proxy API calls dynamically to the backend container/server URL
+    reverse_proxy /api/v1/* {$BACKEND_URL}
+
+    # Enable gzip compression
+    encode gzip
+}

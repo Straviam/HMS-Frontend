@@ -14,10 +14,30 @@ interface RoomDischargingSheetProps {
   onSuccessRevalidate: () => void;
 }
 
+interface ReceiptItem {
+  itemName: string;
+  price: number;
+}
+
+interface ReceiptGroup {
+  serviceTypeName: string;
+  items: ReceiptItem[];
+}
+
+interface InvoiceSummary {
+  invoiceNo: string;
+  payableAmount: number | string;
+}
+
+interface DischargeReceipt {
+  invoice: InvoiceSummary;
+  receipts: ReceiptGroup[];
+}
+
 export function RoomDischargingSheet({ open, onOpenChange, manageRoom, onSuccessRevalidate }: RoomDischargingSheetProps) {
   const dischargePatientLocally = useRoomStore((state) => state.dischargePatientLocally);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [finalReceiptData, setFinalReceiptData] = useState<any>(null); // State for the receipt
+  const [finalReceiptData, setFinalReceiptData] = useState<DischargeReceipt | null>(null); // State for the receipt
 
   // Reset receipt state when sheet opens/closes
   const handleOpenChange = (isOpen: boolean) => {
@@ -106,10 +126,10 @@ export function RoomDischargingSheet({ open, onOpenChange, manageRoom, onSuccess
                   <IconReceipt size={18} /> Final Summary
                 </h3>
 
-                {finalReceiptData.receipts.map((group: any) => (
+                {finalReceiptData.receipts.map((group: ReceiptGroup) => (
                   <div key={group.serviceTypeName} className="space-y-1">
                     <p className="font-semibold text-sm">{group.serviceTypeName}</p>
-                    {group.items.map((item: any, idx: number) => (
+                    {group.items.map((item: ReceiptItem, idx: number) => (
                       <div key={idx} className="flex justify-between text-sm text-muted-foreground ml-2">
                         <span>- {item.itemName}</span>
                         <span>Rs {item.price}</span>

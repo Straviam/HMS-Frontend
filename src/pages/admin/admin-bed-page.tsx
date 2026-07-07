@@ -5,8 +5,7 @@ import {
   IconTool,
   IconActivity,
   IconPlus,
-  IconAdjustmentsHorizontal,
-  IconBrandLoom
+  IconAdjustmentsHorizontal
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -15,7 +14,6 @@ import { useState } from "react";
 import { AddRoomSheet } from "@/components/rooms/add-room-sheet";
 import { BulkPricingDialog } from "@/components/rooms/bulk-pricing-room";
 import { ConfigureRoomSheet } from "@/components/rooms/configure-room-sheet";
-import { RoomLogsDialog } from "@/components/rooms/room-logs-dialog";
 import { getApiOptions, API_BASE_URL } from "@/lib/utils";
 
 type RoomStatus = "AVAILABLE" | "OCCUPIED" | "UNDER_MAINTENANCE" | "CLEANING";
@@ -96,7 +94,6 @@ export default function AdminBedsPage() {
   const [isBulkOpen, setIsBulkOpen] = useState(false);
 
   const [selectedConfRoom, setSelectedConfRoom] = useState<Room | null>(null);
-  const [selectedLogRoom, setSelectedLogRoom] = useState(null);
 
   return (
     <div className="space-y-6">

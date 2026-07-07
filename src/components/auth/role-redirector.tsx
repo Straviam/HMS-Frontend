@@ -13,7 +13,7 @@ export function RoleRedirector() {
   }
 
   if (user.data.role === "RECEPTIONIST") {
-    return <Navigate to="/reception" replace />;
+    return <Navigate to="/receptionist" replace />;
   }
 
   return <Navigate to="/login" replace />;

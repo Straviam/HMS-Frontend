@@ -30,32 +30,35 @@ export function PatientFormSheet() {
         bloodGroup: patient?.bloodGroup || "",
         address: patient?.address || "",});
 
-  useEffect(() => { if (patient && mode === "update") {
-      setFormData({
-        firstName: patient.firstName || "",
-        lastName: patient.lastName || "",
-        phone: patient.phone || "",
-        cnic: patient.cnic || "",
-        dateOfBirth: patient.dateOfBirth
-          ? patient.dateOfBirth.split("T")[0]
-          : "",
-        gender: patient.gender || "",
-        bloodGroup: patient.bloodGroup || "",
-        address: patient.address || "",
-      });
-    } else {
-      // Reset form when switching to 'add' mode
-      setFormData({
-        firstName: "",
-        lastName: "",
-        phone: "",
-        cnic: "",
-        dateOfBirth: "",
-        gender: "",
-        bloodGroup: "",
-        address: "",
-      });
-    }
+  useEffect(() => {
+    setTimeout(() => {
+      if (patient && mode === "update") {
+        setFormData({
+          firstName: patient.firstName || "",
+          lastName: patient.lastName || "",
+          phone: patient.phone || "",
+          cnic: patient.cnic || "",
+          dateOfBirth: patient.dateOfBirth
+            ? patient.dateOfBirth.split("T")[0]
+            : "",
+          gender: patient.gender || "",
+          bloodGroup: patient.bloodGroup || "",
+          address: patient.address || "",
+        });
+      } else {
+        // Reset form when switching to 'add' mode
+        setFormData({
+          firstName: "",
+          lastName: "",
+          phone: "",
+          cnic: "",
+          dateOfBirth: "",
+          gender: "",
+          bloodGroup: "",
+          address: "",
+        });
+      }
+    }, 0);
   }, [patient, mode]);
 
   // Generic change handler for text inputs
@@ -120,8 +123,9 @@ export function PatientFormSheet() {
         if (!response.ok) throw new Error("Failed to update patient.");
         toast.success("Patient updated successfully!");
       }
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred while saving.");
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : "An error occurred while saving.";
+      toast.error(errMsg);
     } finally {
       setIsLoading(false);
     }

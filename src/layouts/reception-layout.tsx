@@ -8,7 +8,7 @@ export default function ReceptionLayout() {
   const { isAuthenticated, user: loggedUser } = useAuth();
 
   // Redirect to login if not authenticated
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !loggedUser) {
     return null;
   }
 

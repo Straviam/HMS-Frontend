@@ -35,17 +35,19 @@ export default function CategoryConfigSheet({ open, onOpenChange, initialData }:
   // Hydrate or clear form when the sheet opens
   useEffect(() => {
     if (open) {
-      if (initialData) {
-        setName(initialData.name || "");
-        setIconKey(initialData.iconKey || "IconActivity");
-        setIsQueuingEnabled(initialData.isQueuingEnabled ?? false);
-        setDoctorInvolvement(initialData.doctorInvolvement || "NO");
-      } else {
-        setName("");
-        setIconKey("IconActivity");
-        setIsQueuingEnabled(false);
-        setDoctorInvolvement("NO");
-      }
+      setTimeout(() => {
+        if (initialData) {
+          setName(initialData.name || "");
+          setIconKey(initialData.iconKey || "IconActivity");
+          setIsQueuingEnabled(initialData.isQueuingEnabled ?? false);
+          setDoctorInvolvement(initialData.doctorInvolvement || "NO");
+        } else {
+          setName("");
+          setIconKey("IconActivity");
+          setIsQueuingEnabled(false);
+          setDoctorInvolvement("NO");
+        }
+      }, 0);
     }
   }, [open, initialData]);
 

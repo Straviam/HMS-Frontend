@@ -10,7 +10,24 @@ import {
   IconActivityHeartbeat
 } from "@tabler/icons-react";
 
-export function PatientLedgerSheet({ patient, open, onOpenChange }: any) {
+interface Patient {
+  id: string;
+  mrNumber: string;
+  firstName: string;
+  lastName: string;
+  cnic: string | null;
+  gender: "MALE" | "FEMALE" | "OTHER" | string;
+  phone: string;
+  createdAt?: string;
+}
+
+interface PatientLedgerSheetProps {
+  patient: Patient | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function PatientLedgerSheet({ patient, open, onOpenChange }: PatientLedgerSheetProps) {
   if (!patient) return null;
 
   // In production, you would fetch these logs dynamically based on patient.id

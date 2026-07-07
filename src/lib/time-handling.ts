@@ -10,7 +10,7 @@ export function formatToAmPm(time24: string) {
 export function formatTo24Hour(time12h: string): string {
   const [time, modifier] = time12h.trim().split(/\s+/);
 
-  let [hours, minutes] = time.split(':');
+  const [hours, minutes] = time.split(':');
   let hoursNum = parseInt(hours, 10);
 
   if (modifier.toUpperCase() === 'PM' && hoursNum !== 12) {

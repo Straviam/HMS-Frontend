@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies cleanly using pnpm
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy the rest of the application files
 COPY . .
@@ -20,7 +20,7 @@ ENV VITE_API_BASE_URL=/api/v1
 RUN pnpm build
 
 # Stage 2: Serve the application using Caddy
-FROM caddy:latest-alpine
+FROM caddy:alpine
 
 # Set default backend URL environment variable
 ENV BACKEND_URL=http://localhost:4040

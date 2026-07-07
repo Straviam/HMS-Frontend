@@ -27,10 +27,9 @@ export default function LoginPage() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { setLogin } = useAuthStore();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  if (isAuthenticated) {
+  if (isAuthenticated && user) {
     const role = user.data.role;
     return <Navigate to={`/${role.toLowerCase()}`} />
   }
@@ -38,7 +37,6 @@ export default function LoginPage() {
   const loginHandler = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMessage(null);
 
     const formData = new FormData(e.currentTarget);
     // TODO: Use zod here schema vaildation 
@@ -73,7 +71,6 @@ export default function LoginPage() {
       if (error instanceof Error) {
         console.log("Login request failed:" + error.message);
         toast.error(error.message);
-        setErrorMessage(error.message);
       }
     } finally {
       setIsLoading(false);

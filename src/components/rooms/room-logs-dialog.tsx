@@ -3,7 +3,16 @@ import {
 } from "@/components/ui/dialog";
 import { IconCircleCheck, IconUserPlus, IconTool, IconBrandLoom } from "@tabler/icons-react";
 
-export function RoomLogsDialog({ room, open, onOpenChange }: any) {
+interface RoomLogsDialogProps {
+  room: {
+    id: string;
+    roomNumber: string;
+  } | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function RoomLogsDialog({ room, open, onOpenChange }: RoomLogsDialogProps) {
   if (!room) return null;
 
   // Mocked audit trail data

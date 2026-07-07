@@ -11,7 +11,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { IconLogout, IconActivity, IconChevronRight } from "@tabler/icons-react";
+import { IconLogout, IconActivity } from "@tabler/icons-react";
 import { useAuthStore } from "@/store/auth-store";
 
 export function AppSidebar({ userRole }: { userRole: string }) {
@@ -23,7 +23,7 @@ export function AppSidebar({ userRole }: { userRole: string }) {
   const handleLogout = async () => {
     try {
       await fetch(`${API_BASE_URL}/users/logout`, {
-        method: "POST",
+        method: "GET",
         credentials: "include",
       }).catch((err) => {
         console.warn("Backend logout request failed:", err);

@@ -1,18 +1,13 @@
 import {
   IconLayoutDashboard,
   IconUsers,
-  IconUserPlus,
   IconStethoscope,
   IconBed,
   IconClipboardList,
-  IconReceipt2,
   IconReportMoney,
-  IconSettings,
-  IconActivityHeartbeat,
   IconBuildingHospital,
   IconNewSection,
   IconReservedLine,
-  IconUsersGroup
 } from "@tabler/icons-react";
 
 
@@ -20,7 +15,7 @@ export interface NavItem {
   title: string;
   href: string;
   roles: string[];
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ size?: number; stroke?: number; className?: string }>;
 }
 
 export const navigationConfig: readonly NavItem[] = [

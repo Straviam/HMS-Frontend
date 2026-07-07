@@ -10,13 +10,29 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useRevalidator } from "react-router";
 
-type roomUpdates = {
+interface roomUpdates {
   id: string;
-  newPrice: number;
+  roomNumber: string;
+  price: number;
+  roomType: string;
+  newPrice?: number;
+}
+
+interface BulkPricingRoom {
+  id: string;
+  roomNumber: string;
+  price: number;
+  roomType: string;
+}
+
+interface BulkPricingDialogProps {
+  rooms: BulkPricingRoom[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 // TODO: Remove Any from every where
-export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
+export function BulkPricingDialog({ rooms, open, onOpenChange }: BulkPricingDialogProps) {
   const revalidator = useRevalidator();
   const [isLoading, setIsLoading] = useState(false);
   const [multiplier, setMultiplier] = useState(1);
@@ -145,7 +161,7 @@ export function BulkPricingDialog({ rooms, open, onOpenChange }: any) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rooms.map((room: any) => (
+              {rooms.map((room: BulkPricingRoom) => (
                 <TableRow key={room.id}>
                   <TableCell className="font-mono font-medium">{room.roomNumber}</TableCell>
                   <TableCell className="text-muted-foreground">{room.roomType}</TableCell>

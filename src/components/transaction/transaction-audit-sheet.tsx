@@ -42,30 +42,31 @@ export function TransactionAuditSheet({ open, onOpenChange, transactionId }: Tra
   const [audit, setAudit] = useState<AuditTransaction | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch the data dynamically when the sheet opens with a valid ID
   useEffect(() => {
-    if (open && transactionId) {
-      setIsLoading(true);
-      fetch(`${API_BASE_URL}/transactions/audit/${transactionId}`, getApiOptions)
-        .then(async (res) => {
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.message || "Failed to fetch audit data");
-          return data;
-        })
-        .then((data) => {
-          setAudit(data.data);
-        })
-        .catch((err) => {
-          toast.error(err.message);
-          onOpenChange(false); // Close the sheet if it fails
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      // Clear data when closed so it doesn't flash old data on next open
-      setAudit(null);
-    }
+    setTimeout(() => {
+      if (open && transactionId) {
+        setIsLoading(true);
+        fetch(`${API_BASE_URL}/transactions/audit/${transactionId}`, getApiOptions)
+          .then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to fetch audit data");
+            return data;
+          })
+          .then((data) => {
+            setAudit(data.data);
+          })
+          .catch((err) => {
+            toast.error(err.message);
+            onOpenChange(false); // Close the sheet if it fails
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else {
+        // Clear data when closed so it doesn't flash old data on next open
+        setAudit(null);
+      }
+    }, 0);
   }, [open, transactionId, onOpenChange]);
 
   const getTypeIcon = (type?: string) => {

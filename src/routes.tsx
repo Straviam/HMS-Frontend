@@ -4,7 +4,6 @@ import AdminLayout, { AdminErrorBoundary } from "./layouts/admin-layout";
 import AdminDashboard, { adminDashboardLoader } from "./pages/admin-dashboard";
 import NotFound from "./pages/not-found";
 import  ReceptionLayout  from "./layouts/reception-layout";
-import ReceptionDashboard from "./pages/reception-dashboard";
 import { RoleRedirector } from "./components/auth/role-redirector";
 import Unauthorized from "./pages/unauthorized";
 import AdminBedsPage, { AdminBedLoader } from "./pages/admin/admin-bed-page";
@@ -14,7 +13,7 @@ import AdminTransactionsPage, { adminTransactionLoader } from "./pages/admin/adm
 import AdminInvoicesPage, { adminInvoiceLoader } from "./pages/admin/admin-billing-page";
 import AdminFacilityPage, { adminFacilityLoader } from "./pages/admin/admin-facility-page";
 import PatientRegistry from "./pages/reception/reception-search-page-2";
-import RoomBooking, { ReceptionBedLoader } from "./pages/reception/reception-room-booking";
+import { ReceptionBedLoader } from "./pages/reception/reception-room-booking";
 import ReceptionRoomBooking from "./pages/reception/reception-room-booking";
 
 export const router = createBrowserRouter([

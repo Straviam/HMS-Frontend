@@ -14,14 +14,25 @@ import { useState } from "react";
 import { useRevalidator } from "react-router";
 
 // Assuming Room type from previous code block
-export function ConfigureRoomSheet({ room, open, onOpenChange }: any) {
-  if (!room) return null;
+interface ConfigureRoomSheetProps {
+  room: {
+    id: string;
+    roomNumber: string;
+    status: string;
+    price: number;
+  } | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
+export function ConfigureRoomSheet({ room, open, onOpenChange }: ConfigureRoomSheetProps) {
   const revalidator = useRevalidator();
   const [isLoading, setIsLoading] = useState(false);
 
-  const [roomStatus, setRoomStatus] = useState(room.status);
-  const [price, setPrice] = useState(room.price);
+  const [roomStatus, setRoomStatus] = useState(room?.status || "");
+  const [price, setPrice] = useState(room?.price || "");
+
+  if (!room) return null;
 
   const handleUpadte = async () => {
     if (!roomStatus || !price) {

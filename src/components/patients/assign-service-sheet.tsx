@@ -55,6 +55,7 @@ export function AssignServiceSheet() {
         setAllServices(servData.data || []);
         setAvailableDoctors(docsData.data || []);
       } catch (error) {
+        console.error("Failed to load service configuration:", error);
         toast.error("Failed to load service configuration.");
       }
     };
@@ -64,14 +65,16 @@ export function AssignServiceSheet() {
   // Reset local state when sheet closes
   useEffect(() => {
     if (!isOpen) {
-      setSelectedTypeId("");
-      setSelectedServiceId("");
-      setSelectedDoctorId("");
-      setCart([]);
-      setInvoiceId(null);
-      setInvoiceState("drafting");
-      setPaymentMethod("CASH");
-      setDiscount("");
+      setTimeout(() => {
+        setSelectedTypeId("");
+        setSelectedServiceId("");
+        setSelectedDoctorId("");
+        setCart([]);
+        setInvoiceId(null);
+        setInvoiceState("drafting");
+        setPaymentMethod("CASH");
+        setDiscount("");
+      }, 0);
     }
   }, [isOpen]);
 
@@ -129,7 +132,8 @@ export function AssignServiceSheet() {
 
         toast.success("Service added to active invoice.");
         setCart((prev) => [...prev, newItem]);
-      } catch (err) {
+      } catch (error) {
+        console.error("Failed to append service to invoice:", error);
         toast.error("Failed to append service to invoice.");
       } finally {
         setIsLoading(false);
@@ -167,8 +171,9 @@ export function AssignServiceSheet() {
       setInvoiceId(data.data.invoice.id);
       setInvoiceState("generated");
       toast.success("Draft invoice generated successfully.");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to generate invoice.");
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "Failed to generate invoice.";
+      toast.error(errMsg);
     } finally {
       setIsLoading(false);
     }
@@ -189,7 +194,8 @@ export function AssignServiceSheet() {
 
       setInvoiceState("finalized");
       toast.success("Invoice finalized and locked.");
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to finalize invoice:", error);
       toast.error("Failed to finalize invoice.");
     } finally {
       setIsLoading(false);
@@ -217,7 +223,8 @@ export function AssignServiceSheet() {
 
       setInvoiceState("paid");
       toast.success("Payment processed successfully.");
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to process payment:", error);
       toast.error("Failed to process payment.");
     } finally {
       setIsLoading(false);

@@ -2,6 +2,8 @@ import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { IconArrowLeft, IconHome, IconStethoscope } from "@tabler/icons-react";
 
+const traceId = Math.random().toString(36).substring(2, 11).toUpperCase();
+
 export default function NotFound() {
   const navigate = useNavigate();
 
@@ -50,7 +52,7 @@ export default function NotFound() {
       <div className="mt-16 pt-8 border-t border-border w-full max-w-xs">
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground font-mono">
           <span className="flex items-center gap-1">
-            <search className="h-3 w-3" /> Trace ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}
+            <search className="h-3 w-3" /> Trace ID: {traceId}
           </span>
         </div>
       </div>

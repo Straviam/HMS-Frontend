@@ -13,6 +13,12 @@ import { AssignServiceSheet } from "@/components/reception/assign-service-to-adm
 import { RoomBookingSheet } from "@/components/reception/room-booking-sheet";
 import { toast } from "sonner";
 
+interface ActiveStay {
+  room: { id: string };
+  patient: { firstName: string; lastName: string; mrNumber: string };
+  booking: { invoiceId: string };
+}
+
 // --- LOADER (Merging your two new endpoints) ---
 export async function ReceptionBedLoader() {
   try {
@@ -28,7 +34,7 @@ export async function ReceptionBedLoader() {
 
     // Merge the active bookings into the physical rooms array
     const mergedRooms = roomsData.data.map((room: Room) => {
-      const activeStay = bookingsData.data.find((b: any) => b.room.id === room.id);
+      const activeStay = bookingsData.data.find((b: ActiveStay) => b.room.id === room.id);
       if (activeStay) {
         return {
           ...room,
@@ -43,12 +49,23 @@ export async function ReceptionBedLoader() {
 
     return { stats: statsData.data, rooms: mergedRooms };
   } catch (error) {
-    throw new Error("Failed to load Reception data from server.");
+    throw new Error("Failed to load Reception data from server.", { cause: error });
   }
 }
 
+interface ReceptionLoaderData {
+  stats: {
+    total: number;
+    available: number;
+    occupied: number;
+    cleaning: number;
+    maintenance: number;
+  };
+  rooms: Room[];
+}
+
 export default function ReceptionRoomBooking() {
-  const { rooms: loaderRooms, stats } = useLoaderData() as any;
+  const { rooms: loaderRooms, stats } = useLoaderData() as ReceptionLoaderData;
   const { revalidate } = useRevalidator();
   const { rooms, setRooms } = useRoomStore();
 
@@ -76,9 +93,11 @@ export default function ReceptionRoomBooking() {
   // --- TAB 1 SEARCH LOGIC (API) ---
   useEffect(() => {
     if (!admissionSearch.trim()) {
-      setAdmissionResults([]);
-      setHasSearchedAdmissions(false);
-      setIsSearchingAdmissions(false);
+      setTimeout(() => {
+        setAdmissionResults([]);
+        setHasSearchedAdmissions(false);
+        setIsSearchingAdmissions(false);
+      }, 0);
       return;
     }
     const delayFn = setTimeout(async () => {

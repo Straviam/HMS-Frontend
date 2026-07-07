@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 // 1. Import useRevalidator for the polling mechanism
 import { useLoaderData, useRevalidator } from "react-router";
 import {

@@ -13,8 +13,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useRevalidator } from "react-router";
 
-// TODO: remove this any 
-export function OnboardDoctorSheet({ open, onOpenChange }: any) {
+interface OnboardDoctorSheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function OnboardDoctorSheet({ open, onOpenChange }: OnboardDoctorSheetProps) {
 
   const revalidator = useRevalidator()
   const [doctorName, setDoctorName] = useState<string>("");

@@ -4,5 +4,5 @@ dist
 .gitignore
 .dockerignore
 Dockerfile
-Caddyfile
 README.md
+

@@ -13,7 +13,31 @@ import { useState } from "react";
 import { useRevalidator } from "react-router";
 import { toast } from "sonner";
 
-export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
+interface Timing {
+  id: string;
+  day: string;
+  startTime: string;
+  endTime: string;
+  avgConsultationTime: number;
+  maxTokens: number;
+  consultationFee: number;
+}
+
+interface Doctor {
+  id: string;
+  doctorName: string;
+  specialization: string;
+  isAvailable: boolean;
+  timings?: Timing[];
+}
+
+interface ManageTimingsSheetProps {
+  doctor: Doctor | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function ManageTimingsSheet({ doctor, open, onOpenChange }: ManageTimingsSheetProps) {
   // TODO: instead of multiple state maybe one state will be better contaning all these attributes
   const [day, setDay] = useState<string>("");
   const [startTime, setStartTime] = useState<string>("");
@@ -53,6 +77,7 @@ export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
       toast.success(result.message || "sucesss")
 
     } catch (error) {
+      console.error("Failed to add timing:", error);
       const errorMessage = error instanceof Error ? error.message : "Something went wrong"
       toast.error(errorMessage);
     } finally {
@@ -61,6 +86,7 @@ export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
   }
 
   const deleteTiming = async (timingId: string) => {
+    setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/doctors/timing/${timingId}`, {
         method: 'DELETE',
@@ -80,6 +106,7 @@ export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
       toast.success(result.message || "sucesss")
 
     } catch (error) {
+      console.error("Failed to delete timing:", error);
       const errorMessage = error instanceof Error ? error.message : "Something went wrong"
       toast.error(errorMessage);
     } finally {
@@ -159,8 +186,9 @@ export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
             </div>
 
             <Button variant="secondary" className="w-full text-xs font-bold uppercase tracking-wider"
-              onClick={() => addTimingHandler(doctor.id)}>
-              Issue Block to Schedule
+              onClick={() => addTimingHandler(doctor.id)}
+              disabled={isLoading}>
+              {isLoading ? "Issuing Block..." : "Issue Block to Schedule"}
             </Button>
           </div>
 
@@ -175,7 +203,7 @@ export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
                 <p className="text-sm text-muted-foreground italic text-center py-4">No active schedules configured.</p>
               )}
 
-              {doctor.timings?.map((timing: any) => (
+              {doctor.timings?.map((timing: Timing) => (
                 <div key={timing.id} className="flex items-center justify-between p-3 border rounded-lg bg-card shadow-sm hover:shadow-md transition-all group">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
@@ -198,6 +226,7 @@ export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
                     className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Revoke Schedule Block"
                     onClick={() => deleteTiming((timing.id))}
+                    disabled={isLoading}
                   >
                     <IconTrash size={16} />
                   </Button>
@@ -209,7 +238,7 @@ export function ManageTimingsSheet({ doctor, open, onOpenChange }: any) {
         </div>
 
         <SheetFooter className="mt-auto pt-4 border-t border-border/50">
-          <Button onClick={() => onOpenChange(false)} className="w-full shadow-md">
+          <Button onClick={() => onOpenChange(false)} className="w-full shadow-md" disabled={isLoading}>
             Done Inspecting
           </Button>
         </SheetFooter>

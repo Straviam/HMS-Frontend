@@ -51,27 +51,29 @@ export function InvoiceDetailSheet({ open, onOpenChange, transactionId }: Invoic
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (open && transactionId) {
-      setIsLoading(true);
-      fetch(`${API_BASE_URL}/invoices/${transactionId}`, getApiOptions)
-        .then(async (res) => {
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.message || "Failed to fetch invoice data");
-          return data;
-        })
-        .then((data) => {
-          setInvoice(data.data);
-        })
-        .catch((err) => {
-          toast.error(err.message);
-          onOpenChange(false);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      setInvoice(null);
-    }
+    setTimeout(() => {
+      if (open && transactionId) {
+        setIsLoading(true);
+        fetch(`${API_BASE_URL}/invoices/${transactionId}`, getApiOptions)
+          .then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to fetch invoice data");
+            return data;
+          })
+          .then((data) => {
+            setInvoice(data.data);
+          })
+          .catch((err) => {
+            toast.error(err.message);
+            onOpenChange(false);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else {
+        setInvoice(null);
+      }
+    }, 0);
   }, [open, transactionId, onOpenChange]);
 
   if (!transactionId) return null;

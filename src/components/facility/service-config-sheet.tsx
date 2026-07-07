@@ -37,19 +37,21 @@ export default function ServiceConfigSheet({ open, onOpenChange, categories, ini
   // Hydrate or clear form when the sheet opens
   useEffect(() => {
     if (open) {
-      if (initialData) {
-        setServiceName(initialData.serviceName || "");
-        setSystemCode(initialData.systemCode || "");
-        setBasePrice(initialData.basePrice || "");
-        setServiceTypeId(initialData.serviceTypeId || "");
-        setIsActive(initialData.isActive ?? true);
-      } else {
-        setServiceName("");
-        setSystemCode("");
-        setBasePrice("");
-        setServiceTypeId("");
-        setIsActive(true);
-      }
+      setTimeout(() => {
+        if (initialData) {
+          setServiceName(initialData.serviceName || "");
+          setSystemCode(initialData.systemCode || "");
+          setBasePrice(initialData.basePrice || "");
+          setServiceTypeId(initialData.serviceTypeId || "");
+          setIsActive(initialData.isActive ?? true);
+        } else {
+          setServiceName("");
+          setSystemCode("");
+          setBasePrice("");
+          setServiceTypeId("");
+          setIsActive(true);
+        }
+      }, 0);
     }
   }, [open, initialData]);
 

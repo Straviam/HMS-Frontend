@@ -26,9 +26,11 @@ export default function PatientRegistry() {
 
   useEffect(() => {
     if (!searchTerm.trim()) {
-      setSearchResults([]);
-      setHasSearched(false);
-      setCurrentPage(1);
+      setTimeout(() => {
+        setSearchResults([]);
+        setHasSearched(false);
+        setCurrentPage(1);
+      }, 0);
       return;
     }
 

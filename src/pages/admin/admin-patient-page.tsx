@@ -1,6 +1,6 @@
 import { API_BASE_URL } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { useLoaderData, useNavigation, useSearchParams, type LoaderFunctionArgs } from "react-router";
+import { useLoaderData, useSearchParams, type LoaderFunctionArgs } from "react-router";
 import {
   IconUsers,
   IconTrendingUp,
@@ -49,7 +49,6 @@ export default function AdminPatientsPage() {
   const { patients, stats, pagination } = useLoaderData() as LoaderData;
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigation = useNavigation();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
 
   useEffect(() => {

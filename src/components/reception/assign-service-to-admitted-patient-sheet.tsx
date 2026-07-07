@@ -61,6 +61,7 @@ export function AssignServiceSheet({ open, onOpenChange, room }: AssignServiceSh
         setAllServices(servData.data || []);
         setAvailableDoctors(docsData.data || []);
       } catch (error) {
+        console.error("Failed to load service configuration:", error);
         toast.error("Failed to load service configuration.");
       } finally {
         setIsLoadingData(false);
@@ -72,10 +73,12 @@ export function AssignServiceSheet({ open, onOpenChange, room }: AssignServiceSh
   // Reset local state when sheet closes
   useEffect(() => {
     if (!open) {
-      setSelectedTypeId("");
-      setSelectedServiceId("");
-      setSelectedDoctorId("");
-      setCart([]);
+      setTimeout(() => {
+        setSelectedTypeId("");
+        setSelectedServiceId("");
+        setSelectedDoctorId("");
+        setCart([]);
+      }, 0);
     }
   }, [open]);
 

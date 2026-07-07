@@ -37,27 +37,29 @@ export function ManageDraftSheet({ open, onOpenChange, invoice }: ManageDraftShe
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (open && invoice?.id) {
-      setIsLoading(true);
-      fetch(`${API_BASE_URL}/invoices/${invoice.id}`, getApiOptions)
-        .then(async (res) => {
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.message || "Failed to fetch draft invoice data");
-          return data;
-        })
-        .then((data) => {
-          setActiveInvoice(data.data);
-        })
-        .catch((err) => {
-          toast.error(err.message);
-          onOpenChange(false);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      setActiveInvoice(null);
-    }
+    setTimeout(() => {
+      if (open && invoice?.id) {
+        setIsLoading(true);
+        fetch(`${API_BASE_URL}/invoices/${invoice.id}`, getApiOptions)
+          .then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to fetch draft invoice data");
+            return data;
+          })
+          .then((data) => {
+            setActiveInvoice(data.data);
+          })
+          .catch((err) => {
+            toast.error(err.message);
+            onOpenChange(false);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else {
+        setActiveInvoice(null);
+      }
+    }, 0);
   }, [open, invoice?.id, onOpenChange]);
 
   if (!invoice?.id) return null;
